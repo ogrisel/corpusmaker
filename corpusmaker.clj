@@ -12,7 +12,7 @@
 (ns corpusmaker
     (:require [clojure.zip :as zip]
               [clojure.xml :as xml]
-	      [clojure.contrib.zip-filter.xml]))
+              [clojure.contrib.zip-filter.xml]))
 
 (defn parse-xml
   "seqable XML content from filename"
