@@ -14,6 +14,10 @@
               [clojure.contrib.lazy-xml :as lxml]
               [clojure.contrib.zip-filter.xml :as zfx]))
 
+; TODO: rewrite this using http://github.com/marktriggs/xml-picker-seq since
+; using a zipper keeps all the parsed elements in memory which is not suitable
+; for large XML chunks
+
 (defn parse-xml
   "Zipable XML content from any common source"
   [src] (zip/xml-zip (lxml/parse-trim src)))
