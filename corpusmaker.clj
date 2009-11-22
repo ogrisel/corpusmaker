@@ -11,16 +11,16 @@
 
 (ns corpusmaker
     (:require [clojure.zip :as zip]
-              [clojure.xml :as xml]
-              [clojure.contrib.zip-filter.xml]))
+              [clojure.contrib.lazy-xml :as lxml]
+              [clojure.contrib.zip-filter.xml :as zfx]))
 
 (defn parse-xml
-  "seqable XML content from filename"
-  [filename] (zip/xml-zip (xml/parse (java.io.File. filename))))
+  "Zipable XML content from any common source"
+  [src] (zip/xml-zip (lxml/parse-trim src)))
 
 (defn collect-text
   "collect wikimarkup payload of a dump in seqable xml"
-  [xml] (xml-> xml :page :revision :text text))
+  [xml] (zfx/xml-> xml :page :revision :text zfx/text))
 
 ; sample timed run
 ; (time (dorun (collect-text (parse-xml "chunk-0001.xml"))))
