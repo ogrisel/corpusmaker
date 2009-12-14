@@ -18,28 +18,44 @@
   (:use
      [clojure.contrib.duck-streams :only (read-lines)]))
 
+;
+; Utilities to parse DBPedia N-TRIPLES dump to load them in a redis DB to
+; perform fast look up of wikilink => entity type
+;
+
 ; RE to parse a line of a N-TRIPLES RDF stream to find a type relationship
 ; http://www.w3.org/TR/rdf-testcases/#ntriples
-(def *type-pattern* #"<([^<]+?)> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <([^<]+?)> \.")
-(def *page-pattern* #"<([^<]+?)> <http://xmlns.com/foaf/0.1/page> <([^<]+?)> \.")
+(def *type-pattern*
+  #"<([^<]+?)> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <([^<]+?)> \.")
+(def *page-pattern*
+  #"<([^<]+?)> <http://xmlns.com/foaf/0.1/page> <([^<]+?)> \.")
 
 (defn collect-page
   "Parse a N-TRIPLES statement and store the [instance page] pair if match"
   [store-func statement]
   (let [[_ inst page] (re-find *page-pattern* statement)]
-    (when inst (store-func page inst)))
+    (when inst (store-func page inst))))
 
 (defn process-file [filename line-func]
   ; TODO: add start line and end line (max)
   ; TODO: add version to pass an acc explicitly and reduce instead?
   ; http://lethain.com/entry/2009/nov/15/reading-file-in-clojure/
-  (doall (map line-func (read-lines filename))))
+  (count (map line-func (read-lines filename))))
 
 (defn collect-pages-redis
   [filename]
   (redis/with-server
     {:host "127.0.0.1" :port 6379 :db 0}
-    (process-file filename #(collect-page redis/set %))))
+    (let [store-func #(redis/set %1 %2)
+          process-line #(collect-page store-func %)]
+      (process-file filename process-line))))
+
+;
+; Utilities to parse a complete Wikimedia XML dump to extract sentence that
+; contain token annotated with a wiki link that point to a page that matches a
+; named entity with a type among the classes of the DBPedia ontology:
+; Person, Organisation, Place, ...
+;
 
 ; TODO: rewrite this using http://github.com/marktriggs/xml-picker-seq since
 ; using a zipper keeps all the parsed elements in memory which is not suitable
