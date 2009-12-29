@@ -30,6 +30,7 @@
 (def *page-pattern*
   #"<([^<]+?)> <http://xmlns.com/foaf/0.1/page> <([^<]+?)> \.")
 
+(def *owl-Thing* "http://www.w3.org/2002/07/owl#Thing")
 (def *pages-db* "entities-pages")
 (def *types-db* "pages-types")
 (def *wikipage-filename* "wikipage_en.nt")
@@ -57,14 +58,15 @@
     (process-file filename collect-page)))
 
 (defn join-page-type
-  "Parse a N-TRIPLES statement and store the [page type] pair if match"
+  "Parse a N-TRIPLES statement and store the [page list(types)] pair if match"
   [statement]
   (let [[_ entity type_] (re-find *type-pattern* statement)]
-    (when entity
+    ; all instances are of type Thing hence not interesting for our use case
+    (when (and entity (not= type_ *owl-Thing*))
       (redis/select *pages-db*)
       (when-let [page (redis/get entity)]
         (redis/select *types-db*)
-        (redis/set page type_)))))
+        (redis/rpush page type_)))))
 
 (defn collect-pages-to-types
   "Parse a N-TRIPLES file to extract types to be joined with page db"
