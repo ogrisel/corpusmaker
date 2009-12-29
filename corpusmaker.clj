@@ -32,6 +32,8 @@
 
 (def *pages-db* "entities-pages")
 (def *types-db* "pages-types")
+(def *wikipage-filename* "wikipage_en.nt")
+(def *instancetype-filename* "instancetype_en.nt")
 
 (defn process-file [filename line-func]
   ; TODO: add start line and end line (max)
@@ -70,6 +72,23 @@
   (redis/with-server
     server-params
     (process-file filename join-page-type)))
+
+(defn build-page-type-db
+  "Build a redis db from dbpedia NT dumps to be found in folder
+
+  Only instances-types_en.nt and wikipage_en.nt are required."
+  [folder server-params]
+  (collect-entities-to-pages
+    (str folder "/" *wikipage-filename*)
+    server-params)
+  (collect-pages-to-types
+    (str folder "/" *instancetype-filename*)
+    server-params))
+
+(comment
+  (use 'corpusmaker)
+  (time (build-page-type-db "/home/ogrisel/data/dbpedia" {}))
+)
 ;;
 ;; Utilities to parse a complete Wikimedia XML dump to extract sentence that
 ;; contain token annotated with a wiki link that point to a page that matches a
