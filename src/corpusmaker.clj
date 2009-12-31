@@ -37,6 +37,7 @@
 (def *instancetype-filename* "instancetype_en.nt")
 
 (defn process-file [filename line-func]
+  "Apply line-func to each line of filename and return the number of lines"
   ; TODO: add start line and end line (max)
   ; TODO: add version to pass an acc explicitly and reduce instead?
   ; http://lethain.com/entry/2009/nov/15/reading-file-in-clojure/
@@ -91,12 +92,28 @@
   (use 'corpusmaker)
   (time (build-page-type-db "/home/ogrisel/data/dbpedia" {}))
 )
-;;
+
+
 ;; Utilities to parse a complete Wikimedia XML dump to extract sentence that
 ;; contain token annotated with a wiki link that point to a page that matches a
 ;; named entity with a type among the classes of the DBPedia ontology:
 ;; Person, Organisation, Place, ...
-;;
+
+
+; some {{wiki directive}} inside the text body
+(def *double-curly* #"\{\{(.+?)\}\}")
+
+; some [[Category:A given category]] inside the text body
+(def *category* #"\[\[Category:(.+?)\]\]")
+
+; some [[Known Person]] inside the text body
+(def *wikilink* #"\[\[([^\|:]+?)\]\]")
+
+; some [[Article title for Known Person|Known Person]] inside the text body
+(def *qualified-wikilink* #"\[\[([^\|:]+?)\|([^\|]+?)\]\]")
+
+; some [[w:Article title for Known Person|Known Person]] inside the text body
+(def *inter-wikilink* #"\[\[([^\|:]+?):([^\|:]+?)\|([^\|]+?)\]\]")
 
 ;; TODO: rewrite this using http://github.com/marktriggs/xml-picker-seq since
 ;; using a zipper keeps all the parsed elements in memory which is not suitable
@@ -109,6 +126,7 @@
 (defn collect-text
   "collect wikimarkup payload of a dump in seqable xml"
   [xml] (zfx/xml-> xml :page :revision :text zfx/text))
+
 
 
 ;; sample timed run
