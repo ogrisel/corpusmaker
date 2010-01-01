@@ -3,7 +3,7 @@
      clojure.test
      corpusmaker))
 
-(deftest dummy-test
-  (is (= 1 1)))
+(def *sample-dumpfile* "test/enwiki-20090902-pages-articles-sample.xml")
 
-
+(deftest test-collect-text
+  (is 3 (count (-> *sample-dumpfile* parse-xml collect-text))))
