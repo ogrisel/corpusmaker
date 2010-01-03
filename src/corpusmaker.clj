@@ -123,10 +123,23 @@
   "Zipable XML content from any common source"
   [src] (zip/xml-zip (lxml/parse-trim src)))
 
+(defn no-redirect?
+  "Check that the page content does not forward to another article"
+  [page-markup]
+  (-> page-markup .trim (.startsWith "#REDIRECT") not))
+
+(defn clean-markup
+  "Remove wiki markup that does not hold annotation data"
+  [page-markup]
+  ; TODO
+  page-markup)
+
 (defn collect-text
   "collect wikimarkup payload of a dump in seqable xml"
-  [xml] (zfx/xml-> xml :page :revision :text zfx/text))
-
+  [xml]
+  (map clean-markup
+       (filter no-redirect?
+               (zfx/xml-> xml :page :revision :text zfx/text))))
 
 
 ;; sample timed run
