@@ -12,9 +12,11 @@
   (is (not (no-redirect? "\n#REDIRECT [[Elf (disambiguation)]]")))
   (is (not (no-redirect? "#REDIRECT [[Elf (disambiguation)]]"))))
 
-(deftest test-clean-markups
-  (is (= "Some text" (clean-markup "{{directive 1}}Some{{directive 2}} text"))))
+(deftest test-clean-markup
+  (is (= "Some text" (clean-markup "{{directive 1}}Some{{directive 2}} text")))
+  (is (= "Some text" (clean-markup "<!-- this is a comment -->Some text")))
+  (is (= "Some text" (clean-markup "[[Category:Test document]]Some text"))))
 
-(deftest test-parse-and-filter-redirects
+(deftest test-parse-sample-dump
   (is (= 2 (count (-> *sample-dumpfile* parse-xml collect-text)))))
 

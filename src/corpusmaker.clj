@@ -99,6 +99,8 @@
 ;; named entity with a type among the classes of the DBPedia ontology:
 ;; Person, Organisation, Place, ...
 
+; some <!-- wiki comment --> inside the text body
+(def *comment* #"<!--(.*?)-->")
 
 ; some {{wiki directive}} inside the text body
 (def *double-curly* #"\{\{(.+?)\}\}")
@@ -133,7 +135,7 @@
   [page-markup]
   (reduce #(-> %2 (.matcher %1) (.replaceAll ""))
           page-markup
-          [*double-curly* *category*]))
+          [*comment* *double-curly* *category*]))
 
 (defn collect-text
   "collect wikimarkup payload of a dump in seqable xml"
