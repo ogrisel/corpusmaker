@@ -131,8 +131,9 @@
 (defn clean-markup
   "Remove wiki markup that does not hold annotation data"
   [page-markup]
-  ; TODO
-  page-markup)
+  (reduce #(-> %2 (.matcher %1) (.replaceAll ""))
+          page-markup
+          [*double-curly* *category*]))
 
 (defn collect-text
   "collect wikimarkup payload of a dump in seqable xml"
