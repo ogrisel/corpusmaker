@@ -18,6 +18,10 @@
   (:use
      [clojure.contrib.duck-streams :only (read-lines)]))
 
+;; Parsing big dumps can be really slow if the program spends time handling
+;; types dynamically
+(set! *warn-on-reflection* true)
+
 ;;
 ;; Utilities to parse DBPedia N-TRIPLES dump to load them in a redis DB to
 ;; perform fast look up of wikilink => entity type
@@ -102,6 +106,9 @@
 ; some <!-- wiki comment --> inside the text body
 (def *comment* #"<!--(.*?)-->")
 
+; some <ref /> inside the text body
+(def *ref* #"(<ref(.*?)/>|<ref(.*?)>(.*?)</ref>)")
+
 ; some {{wiki directive}} inside the text body
 (def *double-curly* #"\{\{(.+?)\}\}")
 
@@ -127,15 +134,23 @@
 
 (defn no-redirect?
   "Check that the page content does not forward to another article"
-  [page-markup]
+  [#^String page-markup]
   (-> page-markup .trim (.startsWith "#REDIRECT") not))
+
+(defn replace-all
+  "Replace all occurrences of a pattern in the given text"
+  [text #^java.util.regex.Pattern pattern replacement]
+  (-> pattern (.matcher text) (.replaceAll replacement)))
+
+(defn remove-all
+  "Replace all occurrences of a pattern in the given text by an empty string"
+  [text #^java.util.regex.Pattern pattern]
+  (replace-all text pattern ""))
 
 (defn clean-markup
   "Remove wiki markup that does not hold annotation data"
-  [page-markup]
-  (reduce #(-> %2 (.matcher %1) (.replaceAll ""))
-          page-markup
-          [*comment* *double-curly* *category*]))
+  [#^String page-markup]
+  (reduce remove-all page-markup [*comment* *double-curly* *category* *ref*]))
 
 (defn collect-text
   "collect wikimarkup payload of a dump in seqable xml"
