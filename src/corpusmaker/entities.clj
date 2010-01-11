@@ -9,7 +9,7 @@
 ;; corpusmaker - Clojure tools to build training dataset for machine learning
 ;; based NLP algorithms out of Wikimedia dumps
 
-(ns corpusmaker
+(ns corpusmaker.entities
   (:require
      [clojure.zip :as zip]
      [clojure.contrib.lazy-xml :as lxml]
@@ -18,14 +18,10 @@
   (:use
      [clojure.contrib.duck-streams :only (read-lines)]))
 
-;; Parsing big dumps can be really slow if the program spends time handling
-;; types dynamically
-(set! *warn-on-reflection* true)
-
-;;
 ;; Utilities to parse DBPedia N-TRIPLES dump to load them in a redis DB to
 ;; perform fast look up of wikilink => entity type
-;;
+
+(set! *warn-on-reflection* true)
 
 ;; RE to parse a line of a N-TRIPLES RDF stream to find a type relationship
 ;; http://www.w3.org/TR/rdf-testcases/#ntriples
@@ -93,73 +89,7 @@
     server-params))
 
 (comment
-  (use 'corpusmaker)
+  (use 'corpusmaker.entities)
   (time (build-page-type-db "/home/ogrisel/data/dbpedia" {}))
 )
-
-
-;; Utilities to parse a complete Wikimedia XML dump to extract sentence that
-;; contain token annotated with a wiki link that point to a page that matches a
-;; named entity with a type among the classes of the DBPedia ontology:
-;; Person, Organisation, Place, ...
-
-; some <!-- wiki comment --> inside the text body
-(def *comment* #"<!--(.*?)-->")
-
-; some <ref /> inside the text body
-(def *ref* #"(<ref(.*?)/>|<ref(.*?)>(.*?)</ref>)")
-
-; some {{wiki directive}} inside the text body
-(def *double-curly* #"\{\{(.+?)\}\}")
-
-; some [[Category:A given category]] inside the text body
-(def *category* #"\[\[Category:(.+?)\]\]")
-
-; some [[Known Person]] inside the text body
-(def *wikilink* #"\[\[([^\|:]+?)\]\]")
-
-; some [[Article title for Known Person|Known Person]] inside the text body
-(def *qualified-wikilink* #"\[\[([^\|:]+?)\|([^\|]+?)\]\]")
-
-; some [[w:Article title for Known Person|Known Person]] inside the text body
-(def *inter-wikilink* #"\[\[([^\|:]+?):([^\|:]+?)\|([^\|]+?)\]\]")
-
-;; TODO: rewrite this using http://github.com/marktriggs/xml-picker-seq since
-;; using a zipper keeps all the parsed elements in memory which is not suitable
-;; for large XML chunks
-
-(defn parse-xml
-  "Zipable XML content from any common source"
-  [src] (zip/xml-zip (lxml/parse-trim src)))
-
-(defn no-redirect?
-  "Check that the page content does not forward to another article"
-  [#^String page-markup]
-  (-> page-markup .trim (.startsWith "#REDIRECT") not))
-
-(defn replace-all
-  "Replace all occurrences of a pattern in the given text"
-  [text #^java.util.regex.Pattern pattern replacement]
-  (-> pattern (.matcher text) (.replaceAll replacement)))
-
-(defn remove-all
-  "Replace all occurrences of a pattern in the given text by an empty string"
-  [text #^java.util.regex.Pattern pattern]
-  (replace-all text pattern ""))
-
-(defn clean-markup
-  "Remove wiki markup that does not hold annotation data"
-  [#^String page-markup]
-  (reduce remove-all page-markup [*comment* *double-curly* *category* *ref*]))
-
-(defn collect-text
-  "collect wikimarkup payload of a dump in seqable xml"
-  [xml]
-  (map clean-markup
-       (filter no-redirect?
-               (zfx/xml-> xml :page :revision :text zfx/text))))
-
-
-;; sample timed run
-;; (time (dorun (collect-text (parse-xml "chunk-0001.xml"))))
 

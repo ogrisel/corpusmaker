@@ -1,7 +1,7 @@
 (ns corpusmaker.test-wikipedia
   (:use
      clojure.test
-     corpusmaker))
+     corpusmaker.wikipedia))
 
 (def *sample-dumpfile* "test/enwiki-20090902-pages-articles-sample.xml")
 
@@ -18,5 +18,7 @@
   (is (= "Some text" (clean-markup "[[Category:Test document]]Some text"))))
 
 (deftest test-parse-sample-dump
-  (is (= 2 (count (-> *sample-dumpfile* parse-xml collect-text)))))
+  (let [articles (-> *sample-dumpfile* parse-xml collect-text)]
+    (is (= 2 (count articles)))))
+    ;(is (= "" (first articles)))))
 
