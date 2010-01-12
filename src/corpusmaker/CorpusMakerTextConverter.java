@@ -16,12 +16,16 @@ import info.bliki.wiki.filter.WPTable;
 import info.bliki.wiki.model.Configuration;
 import info.bliki.wiki.model.IWikiModel;
 import info.bliki.wiki.model.ImageFormat;
+import info.bliki.wiki.model.WikiModel;
 import info.bliki.wiki.tags.WPATag;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class CorpusMakerTextConverter implements ITextConverter {
@@ -32,9 +36,27 @@ public class CorpusMakerTextConverter implements ITextConverter {
 
     public static final String WIKIOBJECT_ATTR_KEY = "wikiobject";
 
+    public static final Set<String> TAGS_WITH_1_NEWLINE = new HashSet<String>(
+            Arrays.asList("p"));
+
+    public static final Set<String> TAGS_WITH_2_NEWLINES = new HashSet<String>(
+            Arrays.asList("h1", "h2", "h3", "h4", "h5", "h6"));
+
     public static final Pattern INTERWIKI_PATTERN = Pattern.compile("http://[\\w-]+\\.wikipedia\\.org/wiki/.*");
 
-    protected static final List<Annotation> wikilinks = new ArrayList<Annotation>();
+    protected final List<Annotation> wikilinks = new ArrayList<Annotation>();
+
+    public static IWikiModel newWikiModel() {
+        return new WikiModel("http:/en.wikipedia.org/wiki/${image}",
+                "http://en.wikipedia.org/wiki/${title}") {
+            @Override
+            public String getRawWikiContent(String namespace,
+                    String articleName, Map<String, String> templateParameters) {
+                // disable template support
+                return "";
+            }
+        };
+    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -76,31 +98,41 @@ public class CorpusMakerTextConverter implements ITextConverter {
                         } else {
                             tag.getBodyString(countingBuffer);
                         }
-                    } else if (node instanceof List) {
-                        nodesToText((List) node, countingBuffer, model);
+
                     } else if (node instanceof ContentToken) {
                         ContentToken contentToken = (ContentToken) node;
                         countingBuffer.append(contentToken.getContent());
+                    } else if (node instanceof List) {
                     } else if (node instanceof WPList) {
-                        ((WPList) node).renderPlainText(this, countingBuffer,
-                                model);
                     } else if (node instanceof WPTable) {
-                        ((WPTable) node).renderPlainText(this, countingBuffer,
-                                model);
+                        // ignore lists and tables since they most of the time
+                        // do not hold grammatically correct
+                        // interesting sentences that are representative of the
+                        // language.
                     } else if (node instanceof TagNode) {
                         TagNode tagNode = (TagNode) node;
                         Map<String, String> attributes = tagNode.getAttributes();
                         Map<String, Object> oAttributes = tagNode.getObjectAttributes();
                         boolean hasSpecialHandling = false;
-                        if (tagNode.getName().equals("a")) {
+                        String tagName = tagNode.getName();
+                        // countingBuffer.append("<[" + tagName + "]>");
+                        if ("a".equals(tagName)) {
                             String href = attributes.get(HREF_ATTR_KEY);
-                            if (INTERWIKI_PATTERN.matcher(href).matches()) {
-                                hasSpecialHandling = true;
-                                // ignore the link since this most probably for
+                            if (href != null
+                                    && INTERWIKI_PATTERN.matcher(href).matches()) {
+                                // ignore the interwiki links since they are
+                                // mostly used for
                                 // translation purpose only.
+                                hasSpecialHandling = true;
                             }
+                        } else if ("ref".equals(tagName)) {
+                            // ignore the references since they do not hold
+                            // interesting text content
+                            hasSpecialHandling = true;
                         } else if (oAttributes != null
                                 && oAttributes.get(WIKIOBJECT_ATTR_KEY) instanceof ImageFormat) {
+                            // the caption of images often hold well formed
+                            // sentences with links to entites
                             hasSpecialHandling = true;
                             ImageFormat iformat = (ImageFormat) oAttributes.get(WIKIOBJECT_ATTR_KEY);
                             imageNodeToText(tagNode, iformat, countingBuffer,
@@ -110,10 +142,12 @@ public class CorpusMakerTextConverter implements ITextConverter {
                             nodesToText(tagNode.getChildren(), countingBuffer,
                                     model);
                         }
-                        if (tagNode.getName().equals("p")
-                                || tagNode.getName().equals("div")) {
+                        if (TAGS_WITH_1_NEWLINE.contains(tagName)) {
                             countingBuffer.append("\n");
+                        } else if (TAGS_WITH_2_NEWLINES.contains(tagName)) {
+                            countingBuffer.append("\n\n");
                         }
+                        // countingBuffer.append("<[/" + tagName + "]>");
                     }
                 }
             } finally {

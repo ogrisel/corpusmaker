@@ -10,10 +10,12 @@
 ;; based NLP algorithms out of Wikimedia dumps
 
 (ns corpusmaker.wikipedia
-  (:require
-     [clojure.zip :as zip]
-     [clojure.contrib.lazy-xml :as lxml]
-     [clojure.contrib.zip-filter.xml :as zfx]))
+  (:use clojure.contrib.duck-streams)
+  (:import java.util.regex.Pattern
+     javax.xml.stream.XMLInputFactory
+     javax.xml.stream.XMLStreamReader
+     javax.xml.stream.XMLStreamConstants
+     corpusmaker.CorpusMakerTextConverter))
 
 ;; Utilities to parse a complete Wikimedia XML dump to extract sentence that
 ;; contain token annotated with a wiki link that point to a page that matches a
@@ -28,34 +30,21 @@
 ;; types dynamically
 (set! *warn-on-reflection* true)
 
-; some <!-- wiki comment --> inside the text body
-(def *comment* #"<!--(.*?)-->")
 
-; some <ref /> inside the text body
-(def *ref* #"(<ref(.*?)/>|<ref(.*?)>(.*?)</ref>)")
+; remove new lines after links or templates that are not to be rendered in the
+; text version
+(def *spurious-eol* #"(?m)(\}\}|\]\])\n")
 
-; some {{wiki directive}} inside the text body
-(def *double-curly* #"\{\{(.+?)\}\}")
+; the {{ndash}} ubiquitous template
+(def *ndash* #"\{\{ndash\}\}")
 
-; some [[Category:A given category]] inside the text body
-(def *category* #"\[\[Category:(.+?)\]\]")
-
-; some [[Known Person]] inside the text body
-(def *wikilink* #"\[\[([^\|:]+?)\]\]")
-
-; some [[Article title for Known Person|Known Person]] inside the text body
-(def *qualified-wikilink* #"\[\[([^\|:]+?)\|([^\|]+?)\]\]")
-
-; some [[w:Article title for Known Person|Known Person]] inside the text body
-(def *inter-wikilink* #"\[\[([^\|:]+?):([^\|:]+?)\|([^\|]+?)\]\]")
+(def *replacements*
+  [{:pattern *ndash* :replacement " - "}
+  {:pattern *spurious-eol* :replacement "$1"}])
 
 ;; TODO: rewrite this using http://github.com/marktriggs/xml-picker-seq since
 ;; using a zipper keeps all the parsed elements in memory which is not suitable
 ;; for large XML chunks
-
-(defn parse-xml
-  "Zipable XML content from any common source"
-  [src] (zip/xml-zip (lxml/parse-trim src)))
 
 (defn no-redirect?
   "Check that the page content does not forward to another article"
@@ -64,28 +53,57 @@
 
 (defn replace-all
   "Replace all occurrences of a pattern in the given text"
-  [text #^java.util.regex.Pattern pattern replacement]
+  [text {#^Pattern pattern :pattern replacement :replacement}]
   (-> pattern (.matcher text) (.replaceAll replacement)))
 
 (defn remove-all
   "Replace all occurrences of a pattern in the given text by an empty string"
-  [text #^java.util.regex.Pattern pattern]
-  (replace-all text pattern ""))
+  [text #^Pattern pattern]
+  (replace-all text {:pattern pattern :replacement ""}))
 
 (defn clean-markup
-  "Remove wiki markup that does not hold annotation data"
-  [#^String page-markup]
-  (reduce remove-all page-markup [*comment* *double-curly* *category* *ref*]))
+  "Proprocess wiki markup to remove unneeded parts"
+  [#^String page]
+  (reduce replace-all (.trim page) *replacements*))
+
+(defn parser-to-text-seq
+  "Extract raw wikimarkup from the text tags encountered by an XML stream parser"
+  [#^XMLStreamReader parser]
+  (let [event (.next parser)]
+    (if (== event XMLStreamConstants/END_DOCUMENT)
+      (.close parser) ; returns nil
+      (if (== event XMLStreamConstants/START_ELEMENT)
+        (if (= (.getLocalName parser) "text")
+          (cons (.getElementText parser) (parser-to-text-seq parser))
+          (recur parser))
+        (recur parser)))))
+
+(defn collect-raw-text
+  "collect wikimarkup payload of a dump in seqable xml"
+  [dumpfile]
+  (let [factory (XMLInputFactory/newInstance)
+        is (java.io.FileInputStream. (file-str dumpfile))
+        parser (.createXMLStreamReader factory (reader is))]
+    (parser-to-text-seq parser)))
 
 (defn collect-text
-  "collect wikimarkup payload of a dump in seqable xml"
-  [xml]
-  (map clean-markup
-       (filter no-redirect?
-               (zfx/xml-> xml :page :revision :text zfx/text))))
+  "collect and preprocess wikimarkup payload of a dump in seqable xml"
+  [dumpfile]
+  (map clean-markup (filter no-redirect? (collect-raw-text dumpfile))))
+
+(defn parse-markup
+  "Remove wikimarkup while collecting links to entities and categories"
+  [page-markup]
+  (let [model (CorpusMakerTextConverter/newWikiModel)
+        converter (CorpusMakerTextConverter.)
+        text (.render model converter page-markup)]
+    {:text text :categories (-> model (.getCategories) (.keySet) set)
+     :links (vec (map #(hash-map
+                         :label (.label %) :start (.start %) :end (.end %))
+                      (.getWikiLinks converter)))}))
 
 (comment
   (use 'corpusmaker.wikipedia)
-  (time (dorun (collect-text (parse-xml "chunk-0001.xml"))))
+  (time (dorun (collect-text "chunk-0001.xml")))
 )
 

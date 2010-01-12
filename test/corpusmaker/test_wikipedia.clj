@@ -13,12 +13,17 @@
   (is (not (no-redirect? "#REDIRECT [[Elf (disambiguation)]]"))))
 
 (deftest test-clean-markup
-  (is (= "Some text" (clean-markup "{{directive 1}}Some{{directive 2}} text")))
-  (is (= "Some text" (clean-markup "<!-- this is a comment -->Some text")))
-  (is (= "Some text" (clean-markup "[[Category:Test document]]Some text"))))
+  (is (= "Some - text" (clean-markup "Some{{ndash}}text")))
+  (is (= "{{lang1}}{{lang2}}" (clean-markup "{{lang1}}\n{{lang2}}\n"))))
+
+;; TODO: write unit tests for parse-markup
 
 (deftest test-parse-sample-dump
-  (let [articles (-> *sample-dumpfile* parse-xml collect-text)]
-    (is (= 2 (count articles)))))
-    ;(is (= "" (first articles)))))
-
+  (let [articles (collect-text *sample-dumpfile*)]
+    (is (= 2 (count articles)))
+    (is (= "{{pp-move-indef}}{{Anarchism s" (.substring (first articles) 0 30 )))
+    (let [anarchism (parse-markup (first articles))]
+      (is (= #{"Anarchism" "Political culture"
+               "Social theories" "Political ideologies"} (:categories anarchism)))
+      (is (= 465 (count (:links anarchism))))
+      (is (= "political philosophy" (:label (first (:links anarchism))))))))
