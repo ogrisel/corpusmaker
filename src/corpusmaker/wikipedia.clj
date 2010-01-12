@@ -15,7 +15,9 @@
      javax.xml.stream.XMLInputFactory
      javax.xml.stream.XMLStreamReader
      javax.xml.stream.XMLStreamConstants
-     corpusmaker.CorpusMakerTextConverter))
+     info.bliki.wiki.model.WikiModel
+     corpusmaker.CorpusMakerTextConverter
+     corpusmaker.Annotation))
 
 ;; Utilities to parse a complete Wikimedia XML dump to extract sentence that
 ;; contain token annotated with a wiki link that point to a page that matches a
@@ -69,14 +71,12 @@
 (defn parser-to-text-seq
   "Extract raw wikimarkup from the text tags encountered by an XML stream parser"
   [#^XMLStreamReader parser]
-  (let [event (.next parser)]
-    (if (== event XMLStreamConstants/END_DOCUMENT)
-      (.close parser) ; returns nil
-      (if (== event XMLStreamConstants/START_ELEMENT)
-        (if (= (.getLocalName parser) "text")
-          (cons (.getElementText parser) (parser-to-text-seq parser))
-          (recur parser))
-        (recur parser)))))
+  (if (.hasNext parser)
+    (if (and (== (.next parser) XMLStreamConstants/START_ELEMENT)
+             (= (.getLocalName parser) "text"))
+      (cons (.getElementText parser) (parser-to-text-seq parser))
+      (recur parser))
+    (.close parser))) ; returns nil, suitable for seq building
 
 (defn collect-raw-text
   "collect wikimarkup payload of a dump in seqable xml"
@@ -91,16 +91,17 @@
   [dumpfile]
   (map clean-markup (filter no-redirect? (collect-raw-text dumpfile))))
 
+(defn annotation [#^Annotation a]
+  {:label (.label a) :start (.start a) :end (.end a)})
+
 (defn parse-markup
   "Remove wikimarkup while collecting links to entities and categories"
   [page-markup]
-  (let [model (CorpusMakerTextConverter/newWikiModel)
+  (let [#^WikiModel model (CorpusMakerTextConverter/newWikiModel)
         converter (CorpusMakerTextConverter.)
         text (.render model converter page-markup)]
     {:text text :categories (-> model (.getCategories) (.keySet) set)
-     :links (vec (map #(hash-map
-                         :label (.label %) :start (.start %) :end (.end %))
-                      (.getWikiLinks converter)))}))
+     :links (vec (map annotation (.getWikiLinks converter)))}))
 
 (comment
   (use 'corpusmaker.wikipedia)

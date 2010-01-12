@@ -46,7 +46,7 @@ public class CorpusMakerTextConverter implements ITextConverter {
 
     protected final List<Annotation> wikilinks = new ArrayList<Annotation>();
 
-    public static IWikiModel newWikiModel() {
+    public static WikiModel newWikiModel() {
         return new WikiModel("http:/en.wikipedia.org/wiki/${image}",
                 "http://en.wikipedia.org/wiki/${title}") {
             @Override
@@ -169,22 +169,6 @@ public class CorpusMakerTextConverter implements ITextConverter {
 
     public List<Annotation> getWikiLinks() {
         return wikilinks;
-    }
-
-    public class Annotation {
-
-        public final int start;
-
-        public final int end;
-
-        public final String label;
-
-        public Annotation(int start, int end, String label) {
-            this.start = start;
-            this.end = end;
-            this.label = label;
-        }
-
     }
 
     public class CountingAppendable implements Appendable {
