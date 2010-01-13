@@ -62,12 +62,12 @@ To build the Named Entities Recognition corpus, first setup a
 store [wiki page URL] => [list of DBpedia matching types] association by
 extracting the DBpedia files in a local folder:
 
-  <pre>$ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types \
-      --input-folder ~/data/dbpedia --flush-db
-  redis host:  localhost
-  redis port:  6379
-  input folder:  /home/ogrisel/data/dbpedia
-  flush database:  yes</pre>
+    $ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types \
+    --input-folder ~/data/dbpedia --flush-db
+    redis host:  localhost
+    redis port:  6379
+    input folder:  /home/ogrisel/data/dbpedia
+    flush database:  yes
 
 (The process takes approximately 15min on my laptop and the Redis DB memory
 size is approximately ~500MB)
