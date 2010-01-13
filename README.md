@@ -30,13 +30,13 @@ Then, at the root of the corpusmaker source tree:
 You can get the latest wikipedia dumps for the english articles here (around
 5.4GB compressed, 23 GB uncompressed):
 
-  http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
+  [enwiki-latest-pages-articles.xml.bz2](http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2)
 
 The DBPedia links and entities types datasets are available here:
 
-  http://downloads.dbpedia.org/3.4/en/wikipage_en.nt.bz2
+  [wikipage_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/wikipage_en.nt.bz2)
 
-  http://downloads.dbpedia.org/3.4/en/instancetype_en.nt.bz2
+  [instancetype_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/instancetype_en.nt.bz2)
 
 All of those datasets are also available from the Amazon cloud as public EBS
 volumes:
