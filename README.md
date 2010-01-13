@@ -1,9 +1,9 @@
 # corpusmaker
 
 Clojure utilities to build training corpora for machine learning / NLP out of
-public Wikipedia / DBPedia dumps.
+public Wikipedia and DBpedia dumps.
 
-## Build from source
+## Building from source
 
 Get the latest version of leiningen to build from the sources:
 
@@ -17,13 +17,18 @@ Then, at the root of the corpusmaker source tree:
 
     $ lein compile-java # compile a custom helper class for the Wikipedia parser
 
-    $ lein compile # ahead-of-time compile clojure tools into classes/
+    $ lein uberjar # build a standalone jar with all depedencies
+
+
+Hackers can also use the following leiningen commands for development /
+deployment purpose:
 
     $ lein test [TESTS] # run the tests in the TESTS namespaces, or all tests
 
     $ lein repl # launch a REPL with the project classpath configured
 
-    $ lein clean # remove all build artifacts
+    $ lein pom # generate a pom.xml file suitable for maven deployment
+
 
 ## Fetching the data
 
@@ -50,6 +55,29 @@ directly from the EBS volume.
 
 ## Usage
 
-TODO: commandline interface to build the links to type redis DB and launch
-local or distribute MapReduce jobs for corpus extraction.
+### Building a NER training / evaluation corpus
+
+To build the Named Entities Recognition corpus, first setup a
+[Redis](http://code.google.com/p/redis/) database server that will be used to
+store [wiki page URL] => [list of DBpedia matching types] association by
+extracting the DBpedia files in a local folder:
+
+  $ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types \
+    --input-folder ~/data/dbpedia --flush-db
+  redis host:  localhost
+  redis port:  6379
+  input folder:  /home/ogrisel/data/dbpedia
+  flush database:  yes
+
+(The process takes approximately 15min on my laptop and the Redis DB memory
+size is approximately ~500MB)
+
+TODO: Explain howto extract a BIO-formatted corpus suitable for the training of
+sequence labeling algorithms such as CRFs with
+[Mallet](http://mallet.cs.umass.edu/) or crfsuite.
+
+### Building a document classification corpus
+
+TODO: Explain howto extract bag of words / document frequency features suitable
+for document classification
 

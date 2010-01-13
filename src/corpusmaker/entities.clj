@@ -20,8 +20,7 @@
 
 ;; Utilities to parse DBPedia N-TRIPLES dump to load them in a redis DB to
 ;; perform fast look up of wikilink => entity type
-
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 ;; RE to parse a line of a N-TRIPLES RDF stream to find a type relationship
 ;; http://www.w3.org/TR/rdf-testcases/#ntriples
@@ -75,6 +74,16 @@
   (redis/with-server
     server-params
     (process-file filename join-page-type)))
+
+(defn flush-all-dbs
+  "Flush the content of the corpusmaker DBs"
+  [server-params]
+  (redis/with-server
+    server-params
+    (redis/select *pages-db*)
+    (redis/flushdb)
+    (redis/select *types-db*)
+    (redis/flushdb)))
 
 (defn build-page-type-db
   "Build a redis db from dbpedia NT dumps to be found in folder
