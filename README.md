@@ -63,7 +63,7 @@ store [wiki page URL] => [list of DBpedia matching types] association by
 extracting the DBpedia files in a local folder:
 
   $ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types \
-    --input-folder ~/data/dbpedia --flush-db
+  --input-folder ~/data/dbpedia --flush-db
   redis host:  localhost
   redis port:  6379
   input folder:  /home/ogrisel/data/dbpedia
