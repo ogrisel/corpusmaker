@@ -41,9 +41,9 @@ The DBPedia links and entities types datasets are available here:
 All of those datasets are also available from the Amazon cloud as public EBS
 volumes:
 
-  http://developer.amazonwebservices.com/connect/entry.jspa?externalID=2506
+  [Wikipedia XML dataset EBS Volume](http://developer.amazonwebservices.com/connect/entry.jspa?externalID=2506)
 
-  http://developer.amazonwebservices.com/connect/entry.jspa?externalID=231
+  [DBPedia Triples dataset EBS Volume](http://developer.amazonwebservices.com/connect/entry.jspa?externalID=2319)
 
 It is planned to have crane based utility function to load them to HDFS
 directly from the EBS volume.
