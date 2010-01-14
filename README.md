@@ -62,19 +62,18 @@ To build the Named Entities Recognition corpus, first setup a
 store [wiki page URL] => [list of DBpedia matching types] association by
 extracting the DBpedia files in a local folder:
 
-    $ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types \
-    --input-folder ~/data/dbpedia --flush-db
+    $ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types --input-folder ~/data/dbpedia --flush-db
     redis host:  localhost
     redis port:  6379
     input folder:  /home/ogrisel/data/dbpedia
     flush database:  yes
 
 (The process takes approximately 15min on my laptop and the Redis DB memory
-size is approximately ~500MB)
+size is approximately ~900MB)
 
 TODO: Explain howto extract a BIO-formatted corpus suitable for the training of
 sequence labeling algorithms such as CRFs with
-[Mallet](http://mallet.cs.umass.edu/) or crfsuite.
+[Mallet](http://mallet.cs.umass.edu/) or [crfsuite](http://www.chokkan.org/software/crfsuite/).
 
 ### Building a document classification corpus
 
