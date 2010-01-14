@@ -19,6 +19,14 @@
      corpusmaker.CorpusMakerTextConverter
      corpusmaker.Annotation))
 
+;; Simple utility to chunk a wikidump file into smaller files suitable for
+;; parallel processing locally (using pmap) or with Hadoop MapReduce
+
+(defn chunk-dump
+  "Split a big XML dump into smaller XML files with the same structure"
+  [input-file output-folder chunk-size]
+  (println "TODO"))
+
 ;; Utilities to parse a complete Wikimedia XML dump to extract sentence that
 ;; contain token annotated with a wiki link that point to a page that matches a
 ;; named entity with a type among the classes of the DBPedia ontology:
@@ -30,8 +38,7 @@
 
 ;; Parsing big dumps can be really slow if the program spends time handling
 ;; types dynamically
-(set! *warn-on-reflection* true)
-
+;(set! *warn-on-reflection* true)
 
 ; remove new lines after links or templates that are not to be rendered in the
 ; text version

@@ -1,11 +1,23 @@
 (ns corpusmaker.cli
   (:gen-class)
-  (:use corpusmaker.entities
+  (:use corpusmaker.wikipedia
+     corpusmaker.entities
      clojure.contrib.command-line))
 
-(defn handle-wikipedia [args]
-  (println "TODO")
-  0)
+(defn handle-chunk [args]
+  (with-command-line
+    args
+    "Chunk a Wikipedia pages XML dump into smaller files"
+    [[input-file "The input file"]
+     [sdtin? "Stream the complete uncompressed dump to STDIN" false]
+     [output-folder "The output folder" "."] ;; TODO handle HDFS URLs
+     [chunk-size "The maximum size of a chunk in megabytes" 128]
+     remaining]
+    (try
+      ;; TODO: find a way to report progress?
+      (time (chunk-dump input-file output-folder chunk-size)) 0
+      (catch java.io.FileNotFoundException fnfe
+        (println "ERROR:" (.getMessage fnfe)) 2))))
 
 (defn handle-load-types [args]
   (with-command-line
@@ -35,7 +47,7 @@
 
 (def *commands*
   {"load-types" handle-load-types
-   "wikipedia" handle-wikipedia})
+   "chunk" handle-chunk})
 
 (defn -main [& args]
   (when args
