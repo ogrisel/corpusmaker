@@ -19,3 +19,6 @@ syntax: glob
 *.settings
 *.pyc
 *.swp
+*.iml
+*.ipr
+*.iws
