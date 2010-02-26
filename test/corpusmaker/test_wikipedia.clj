@@ -24,6 +24,8 @@
     (is (= "{{pp-move-indef}}{{Anarchism s" (.substring (first articles) 0 30 )))
     (let [anarchism (parse-markup (first articles))]
       (is (= #{"Anarchism" "Political culture"
-               "Social theories" "Political ideologies"} (:categories anarchism)))
+               "Social theories"
+               "Political ideologies"} (:categories anarchism)))
       (is (= 465 (count (:links anarchism))))
       (is (= "political philosophy" (:label (first (:links anarchism))))))))
+
