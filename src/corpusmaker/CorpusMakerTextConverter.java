@@ -51,17 +51,16 @@ public class CorpusMakerTextConverter implements ITextConverter {
                 "http://en.wikipedia.org/wiki/${title}") {
             @Override
             public String getRawWikiContent(String namespace,
-                    String articleName, Map<String, String> templateParameters) {
+                                            String articleName, Map<String, String> templateParameters) {
                 // disable template support
                 return "";
             }
         };
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void nodesToText(List<? extends Object> nodes, Appendable buffer,
-            IWikiModel model) throws IOException {
+                            IWikiModel model) throws IOException {
         CountingAppendable countingBuffer;
         if (buffer instanceof CountingAppendable) {
             countingBuffer = (CountingAppendable) buffer;
@@ -74,7 +73,8 @@ public class CorpusMakerTextConverter implements ITextConverter {
             try {
                 int level = model.incrementRecursionLevel();
                 if (level > Configuration.RENDERER_RECURSION_LIMIT) {
-                    countingBuffer.append("Error - recursion limit exceeded rendering tags in PlainTextConverter#nodesToText().");
+                    countingBuffer.append("Error - recursion limit exceeded" +
+                            " rendering tags in PlainTextConverter#nodesToText().");
                     return;
                 }
                 for (Object node : nodes) {
@@ -158,7 +158,7 @@ public class CorpusMakerTextConverter implements ITextConverter {
 
     @Override
     public void imageNodeToText(TagNode tagNode, ImageFormat imageFormat,
-            Appendable buffer, IWikiModel model) throws IOException {
+                                Appendable buffer, IWikiModel model) throws IOException {
         nodesToText(tagNode.getChildren(), buffer, model);
     }
 
