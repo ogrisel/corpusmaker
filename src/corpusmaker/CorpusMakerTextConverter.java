@@ -69,6 +69,7 @@ public class CorpusMakerTextConverter implements ITextConverter {
             countingBuffer = new CountingAppendable(buffer);
         }
 
+        
         if (nodes != null && !nodes.isEmpty()) {
             try {
                 int level = model.incrementRecursionLevel();
