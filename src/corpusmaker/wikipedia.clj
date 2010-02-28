@@ -12,12 +12,15 @@
 (ns corpusmaker.wikipedia
   (:use clojure.contrib.duck-streams)
   (:import java.util.regex.Pattern
-     javax.xml.stream.XMLInputFactory
-     javax.xml.stream.XMLStreamReader
-     javax.xml.stream.XMLStreamConstants
-     info.bliki.wiki.model.WikiModel
-     corpusmaker.CorpusMakerTextConverter
-     corpusmaker.Annotation))
+    javax.xml.stream.XMLInputFactory
+    javax.xml.stream.XMLStreamReader
+    javax.xml.stream.XMLStreamConstants
+    info.bliki.wiki.model.WikiModel
+    org.apache.lucene.analysis.tokenattributes.TermAttribute
+    org.apache.lucene.analysis.Tokenizer
+    org.apache.lucene.wikipedia.analysis.WikipediaTokenizer
+    corpusmaker.CorpusMakerTextConverter
+    corpusmaker.Annotation))
 
 ;; Simple utility to chunk a wikidump file into smaller files suitable for
 ;; parallel processing locally (using pmap) or with Hadoop MapReduce
@@ -109,6 +112,21 @@
         text (.render model converter page-markup)]
     {:text text :categories (-> model (.getCategories) (.keySet) set)
      :links (vec (map annotation (.getWikiLinks converter)))}))
+
+(defn tokenizer-seq
+  "Build a lazy-seq out of a tokenizer with TermAttribute"
+  [tokenizer term-att]
+  (lazy-seq
+    (when (.incrementToken tokenizer)
+      (cons (.term term-att) (tokenizer-seq tokenizer term-att)))))
+
+(defn tokenize
+  "Apply a lucene tokenizer to the markup content as a lazy-seq"
+  [page-markup]
+  (let [reader (java.io.StringReader. page-markup)
+        tokenizer (WikipediaTokenizer. reader)
+        term-att (.addAttribute tokenizer TermAttribute)]
+    (tokenizer-seq tokenizer term-att)))
 
 (comment
   (use 'corpusmaker.wikipedia)

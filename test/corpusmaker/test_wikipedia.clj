@@ -29,3 +29,11 @@
       (is (= 465 (count (:links anarchism))))
       (is (= "political philosophy" (:label (first (:links anarchism))))))))
 
+(deftest test-tokenize
+         (is (= (list "term1" "term2" "term3")
+                (tokenize "term1 term2 term3")))
+         (is (= (list "This" "is" "an" "internal" "link" "to" "another"
+                      "Wikipedia" "article")
+                (tokenize (str "This is an [[internal link]] to another"
+                               " *Wikipedia* article.")))))
+
