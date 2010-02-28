@@ -30,10 +30,30 @@
       (is (= "political philosophy" (:label (first (:links anarchism))))))))
 
 (deftest test-tokenize
-         (is (= (list "term1" "term2" "term3")
-                (tokenize "term1 term2 term3")))
-         (is (= (list "This" "is" "an" "internal" "link" "to" "another"
-                      "Wikipedia" "article")
-                (tokenize (str "This is an [[internal link]] to another"
-                               " *Wikipedia* article.")))))
+  (is (=
+    (list "term1" "term2" "term3")
+    (tokenize "term1 term2 term3")))
+  (is (=
+    (list
+      "This" "is" "an" "internal" "link" "to" "another" "Wikipedia" "article")
+    (tokenize
+      "This is an [[internal link]] to another *Wikipedia* article."))))
 
+(deftest test-ngrams
+  (is (=
+    (list (list 0 1 2) (list 1 2 3) (list 2 3 4))
+    (ngrams 3 (range 5))))
+  (is (=
+    (list
+      (list "This" "is" "a")
+      (list "is" "a" "test"))
+    (ngrams 3 (tokenize "This [[is]] a test."))))
+  (is (=
+    (list
+      (list nil nil "This")
+      (list nil "This" "is")
+      (list "This" "is" "a")
+      (list "is" "a" "test")
+      (list "a" "test" nil)
+      (list "test" nil nil))
+    (padded-ngrams 3 (tokenize "This [[is]] a test.")))))

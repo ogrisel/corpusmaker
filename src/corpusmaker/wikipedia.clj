@@ -128,6 +128,18 @@
         term-att (.addAttribute tokenizer TermAttribute)]
     (tokenizer-seq tokenizer term-att)))
 
+(defn ngrams [n tokens]
+  "Compute n-grams of a seq of tokens"
+  (partition n 1 tokens))
+
+(defn padded-ngrams
+  "Compute n-grams with padding (nil by default)"
+  ([n tokens]
+    (padded-ngrams n tokens nil))
+  ([n tokens pad]
+    (let [pad (repeat (dec n) pad)]
+      (partition  n 1 (concat pad tokens pad)))))
+
 (comment
   (use 'corpusmaker.wikipedia)
   (time (dorun (collect-text "chunk-0001.xml")))
