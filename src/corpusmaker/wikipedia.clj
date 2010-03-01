@@ -19,8 +19,8 @@
     org.apache.lucene.analysis.tokenattributes.TermAttribute
     org.apache.lucene.analysis.Tokenizer
     org.apache.lucene.wikipedia.analysis.WikipediaTokenizer
-    corpusmaker.CorpusMakerTextConverter
-    corpusmaker.Annotation))
+    corpusmaker.wikipedia.LinkAnnotationTextConverter
+    corpusmaker.wikipedia.Annotation))
 
 ;; Simple utility to chunk a wikidump file into smaller files suitable for
 ;; parallel processing locally (using pmap) or with Hadoop MapReduce
@@ -108,8 +108,8 @@
 (defn parse-markup
   "Remove wikimarkup while collecting links to entities and categories"
   [page-markup]
-  (let [#^WikiModel model (CorpusMakerTextConverter/newWikiModel)
-        converter (CorpusMakerTextConverter.)
+  (let [#^WikiModel model (LinkAnnotationTextConverter/newWikiModel)
+        converter (LinkAnnotationTextConverter.)
         text (.render model converter page-markup)]
     {:text text :categories (-> model (.getCategories) (.keySet) set)
      :links (vec (map annotation (.getWikiLinks converter)))}))

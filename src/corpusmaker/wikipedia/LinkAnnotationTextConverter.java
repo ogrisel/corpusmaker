@@ -6,8 +6,9 @@
  * the terms of this license.
  * You must not remove this notice, or any other, from this software.
  */
-package corpusmaker;
+package corpusmaker.wikipedia;
 
+import corpusmaker.wikipedia.Annotation;
 import info.bliki.htmlcleaner.ContentToken;
 import info.bliki.htmlcleaner.TagNode;
 import info.bliki.wiki.filter.ITextConverter;
@@ -28,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class CorpusMakerTextConverter implements ITextConverter {
+public class LinkAnnotationTextConverter implements ITextConverter {
 
     public static final String HREF_ATTR_KEY = "href";
 

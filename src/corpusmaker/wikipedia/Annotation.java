@@ -1,4 +1,4 @@
-package corpusmaker;
+package corpusmaker.wikipedia;
 
 public class Annotation {
 
