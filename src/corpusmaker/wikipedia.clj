@@ -81,12 +81,13 @@
 (defn parser-to-text-seq
   "Extract raw wikimarkup from the text tags encountered by an XML stream parser"
   [#^XMLStreamReader parser]
-  (if (.hasNext parser)
-    (if (and (== (.next parser) XMLStreamConstants/START_ELEMENT)
-             (= (.getLocalName parser) "text"))
-      (cons (.getElementText parser) (parser-to-text-seq parser))
-      (recur parser))
-    (.close parser))) ; returns nil, suitable for seq building
+  (lazy-seq
+    (if (.hasNext parser)
+      (if (and (== (.next parser) XMLStreamConstants/START_ELEMENT)
+        (= (.getLocalName parser) "text"))
+        (cons (.getElementText parser) (parser-to-text-seq parser))
+        (parser-to-text-seq parser))
+      (.close parser)))) ; returns nil, suitable for seq building
 
 (defn collect-raw-text
   "collect wikimarkup payload of a dump in seqable xml"
