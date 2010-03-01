@@ -18,7 +18,7 @@
   ;; parse wikipedia XML dump to extract title and markup into transformed text lines
   (with-log-level :warn
     (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
-      ;; create a flow from wikipedia raw format to json map lines
+      ;; create a flow from wikipedia raw format to text lines
       (let [flow
             (c/flow
               {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
@@ -33,3 +33,19 @@
           (is (= "ANARCHISM\t{{pp-move-indef}} {{Anarchism " (nth output-lines 1)))
           (is (= "AFGHANISTANHISTORY\t#REDIRECT [[History of Afghani" (nth output-lines 2)))
           (is (= "AUTISM\t<!-- NOTES: 1) Please follow t" (nth output-lines 3))))))))
+
+(deftest test-filter-redirect
+  (with-log-level :warn
+    (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
+      (let [flow
+            (c/flow
+              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
+              (c/lfs-tap (c/text-line ["title"]) sink-path)
+              (-> (c/pipe "wikipedia") (ccw/remove-redirect)))]
+        ;; run the flow
+        (c/exec flow)
+        ;; parse check the output text file contents in the sink folder
+        (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
+          (is (= 2 (.size output-lines)))
+          (is (= "Anarchism" (first output-lines)))
+          (is (= "Autism" (second output-lines))))))))

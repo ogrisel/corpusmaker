@@ -9,6 +9,7 @@
 ;; utilities to build cascading flows for Wikipedia content
 
 (ns corpusmaker.cascading.wikipedia
+  (:use corpusmaker.wikipedia)
   (:require (cascading.clojure [api :as c]))
   (:import corpusmaker.cascading.scheme.WikipediaPageScheme
     info.bliki.wiki.model.WikiModel
@@ -26,9 +27,8 @@
   [input-path-or-file]
   (c/hfs-tap (wikipedia-page-scheme) input-path-or-file))
 
-
-
-
-
-
+(defn remove-redirect
+  "Filter pages that carry a #REDIRECT marker"
+  [#^Pipe previous]
+  (c/filter previous ["markup"] #'no-redirect?))
 
