@@ -58,7 +58,6 @@ public class CorpusMakerTextConverter implements ITextConverter {
         };
     }
 
-    @Override
     public void nodesToText(List<? extends Object> nodes, Appendable buffer,
                             IWikiModel model) throws IOException {
         CountingAppendable countingBuffer;
@@ -157,13 +156,11 @@ public class CorpusMakerTextConverter implements ITextConverter {
         }
     }
 
-    @Override
     public void imageNodeToText(TagNode tagNode, ImageFormat imageFormat,
                                 Appendable buffer, IWikiModel model) throws IOException {
         nodesToText(tagNode.getChildren(), buffer, model);
     }
 
-    @Override
     public boolean noLinks() {
         return true;
     }
@@ -182,19 +179,16 @@ public class CorpusMakerTextConverter implements ITextConverter {
             this.wrappedBuffer = wrappedBuffer;
         }
 
-        @Override
         public Appendable append(CharSequence charSeq) throws IOException {
             currentPosition += charSeq.length();
             return wrappedBuffer.append(charSeq);
         }
 
-        @Override
         public Appendable append(char aChar) throws IOException {
             currentPosition += 1;
             return wrappedBuffer.append(aChar);
         }
 
-        @Override
         public Appendable append(CharSequence charSeq, int start, int end)
                 throws IOException {
             currentPosition += end - start;
