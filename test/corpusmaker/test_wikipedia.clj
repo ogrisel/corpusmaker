@@ -32,15 +32,15 @@
 (deftest test-tokenize
   (is (=
     '("term1" "term2" "term3")
-    (tokenize "term1 term2 term3")))
+    (tokenize-markup "term1 term2 term3")))
   (is (=
     '("This" "is" "an" "internal" "link" "to" "another" "Wikipedia" "article")
-    (tokenize
+    (tokenize-markup
       "This is an [[internal link]] to another *Wikipedia* article."))))
 
 (deftest test-tokenize-wikipedia
   (let [articles (collect-text *sample-dumpfile*)
-        article-tokens (map tokenize articles)]
+        article-tokens (map tokenize-markup articles)]
     (is (=
       '("pp" "move" "indef" "Anarchism" "sidebar" "Anarchism" "is"
         "a" "political" "philosophy" "encompassing" "anarchist")
@@ -61,7 +61,7 @@
     (list
       '("This" "is" "a")
       '("is" "a" "test"))
-    (ngrams 3 (tokenize "This [[is]] a test."))))
+    (ngrams 3 (tokenize-markup "This [[is]] a test."))))
   (is (=
     (list
       '(nil nil "This")
@@ -70,4 +70,4 @@
       '("is" "a" "test")
       '("a" "test" nil)
       '("test" nil nil))
-    (padded-ngrams 3 (tokenize "This [[is]] a test.")))))
+    (padded-ngrams 3 (tokenize-markup "This [[is]] a test.")))))

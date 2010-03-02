@@ -23,7 +23,9 @@
             (c/flow
               {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
               (c/lfs-tap (c/text-line ["up-title" "start-markup"]) sink-path)
-              (-> (c/pipe "wikipedia") (c/map ["title" "markup"] #'up-title)))]
+              (->
+                (c/pipe "wikipedia")
+                (c/map ["title" "markup"] #'up-title)))]
         ;; run the flow
         (c/exec flow)
         ;; parse check the output text file contents in the sink folder
@@ -41,7 +43,9 @@
             (c/flow
               {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
               (c/lfs-tap (c/text-line ["title"]) sink-path)
-              (-> (c/pipe "wikipedia") (ccw/remove-redirect)))]
+              (->
+                (c/pipe "wikipedia")
+                (ccw/remove-redirect)))]
         (c/exec flow)
         (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
           (is (= 2 (.size output-lines)))

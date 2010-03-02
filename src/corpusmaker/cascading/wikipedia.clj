@@ -37,4 +37,4 @@
 (defn unigrams
   "Compute the tokens vector of the markup content"
   [#^Pipe previous]
-  (c/mapcat previous ["markup"] ["unigram" #'w/tokenize] ["title" "unigram"]))
+  (c/mapcat previous ["markup"] ["unigram" #'w/tokenize-markup] ["title" "unigram"]))

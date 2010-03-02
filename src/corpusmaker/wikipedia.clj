@@ -121,7 +121,7 @@
     (when (.incrementToken tokenizer)
       (cons (.term term-att) (tokenizer-seq tokenizer term-att)))))
 
-(defn tokenize
+(defn tokenize-markup
   "Apply a lucene tokenizer to the markup content as a lazy-seq"
   [page-markup]
   (let [reader (java.io.StringReader. page-markup)
