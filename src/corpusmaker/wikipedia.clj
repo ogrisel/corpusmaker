@@ -10,14 +10,19 @@
 ;; based NLP algorithms out of Wikimedia dumps
 
 (ns corpusmaker.wikipedia
-  (:use clojure.contrib.duck-streams)
-  (:import java.util.regex.Pattern
+  (:use
+    clojure.contrib.duck-streams
+    clojure.contrib.str-utils)
+  (:import
+    java.util.regex.Pattern
     javax.xml.stream.XMLInputFactory
     javax.xml.stream.XMLStreamReader
     javax.xml.stream.XMLStreamConstants
     info.bliki.wiki.model.WikiModel
     org.apache.lucene.analysis.tokenattributes.TermAttribute
     org.apache.lucene.analysis.Tokenizer
+    org.apache.lucene.analysis.standard.StandardAnalyzer
+    org.apache.lucene.util.Version
     org.apache.lucene.wikipedia.analysis.WikipediaTokenizer
     corpusmaker.wikipedia.LinkAnnotationTextConverter
     corpusmaker.wikipedia.Annotation))
@@ -129,9 +134,30 @@
         term-att (.addAttribute tokenizer TermAttribute)]
     (tokenizer-seq tokenizer term-att)))
 
+(defn tokenize-text
+  "Apply a lucene tokenizer to cleaned text content as a lazy-seq"
+  [page-text]
+  (let [reader (java.io.StringReader. page-text)
+        analyzer (StandardAnalyzer. Version/LUCENE_30 #{})
+        tokenizer (.tokenStream analyzer nil reader)
+        term-att (.addAttribute tokenizer TermAttribute)]
+    (tokenizer-seq tokenizer term-att)))
+
 (defn ngrams [n tokens]
   "Compute n-grams of a seq of tokens"
   (partition n 1 tokens))
+
+(defn ngrams-text [n text]
+  "Compute text representation of ngrams of words in a tokenized text"
+  (map #(str-join " " %) (ngrams n (tokenize-text text))))
+
+(defn bigrams-text [text]
+  "Compute bigrams of a piece of text"
+  (ngrams-text 2 text))
+
+(defn trigrams-text [text]
+  "Compute trigrams of a piece of text"
+  (ngrams-text 3 text))
 
 (defn padded-ngrams
   "Compute n-grams with padding (nil by default)"

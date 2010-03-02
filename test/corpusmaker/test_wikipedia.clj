@@ -71,3 +71,11 @@
       '("a" "test" nil)
       '("test" nil nil))
     (padded-ngrams 3 (tokenize-markup "This [[is]] a test.")))))
+
+(deftest test-trigrams-text
+  (is (=
+    '("this is a"
+      "is a very"
+      "a very interesting"
+      "very interesting test")
+    (trigrams-text "This is a very interesting test."))))

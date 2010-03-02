@@ -14,9 +14,7 @@
     (corpusmaker [wikipedia :as w]))
   (:import
     corpusmaker.cascading.scheme.WikipediaPageScheme
-    info.bliki.wiki.model.WikiModel
-    corpusmaker.wikipedia.LinkAnnotationTextConverter
-    corpusmaker.wikipedia.Annotation))
+    cascading.tuple.Fields))
 
 (defn wikipedia-page-scheme
   "Build WikipediaPageScheme with article title and markup fields"
@@ -34,7 +32,27 @@
   [#^Pipe previous]
   (c/filter previous ["markup"] #'w/no-redirect?))
 
-(defn unigrams
-  "Compute the tokens vector of the markup content"
+(defn- parse-markup-step
+  {:fields ["text"]}
+  [markup]
+  [(:text (w/parse-markup markup))])
+
+(defn parse-markup
+  "Use a mediawiki parser to extract text, links data and categories"
   [#^Pipe previous]
-  (c/mapcat previous ["markup"] ["unigram" #'w/tokenize-markup] ["title" "unigram"]))
+  (c/map previous ["markup"] #'parse-markup-step Fields/ALL))
+
+(defn unigrams
+  "Compute the tokens vector of the text content"
+  [#^Pipe previous]
+  (c/mapcat previous ["text"] ["unigram" #'w/tokenize-text] Fields/ALL))
+
+(defn bigrams
+  "Compute the tokens bigrams of the text content"
+  [#^Pipe previous]
+  (c/mapcat previous ["text"] ["bigram" #'w/bigrams-text] Fields/ALL))
+
+(defn trigrams
+  "Compute the tokens bigrams of the text content"
+  [#^Pipe previous]
+  (c/mapcat previous ["text"] ["trigram" #'w/trigrams-text] Fields/ALL))

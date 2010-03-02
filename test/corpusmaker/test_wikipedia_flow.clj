@@ -62,11 +62,12 @@
               (->
                 (c/pipe "wikipedia")
                 (ccw/remove-redirect)
+                (ccw/parse-markup)
                 (ccw/unigrams)))]
         (c/exec flow)
         (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
-          (is (= 28506 (.size output-lines)))
-          (is (= "Anarchism\tpp" (nth output-lines 0)))
-          (is (= "Anarchism\tmove" (nth output-lines 1)))
-          (is (= "Anarchism\tindef" (nth output-lines 2)))
-          (is (= "Anarchism\tAnarchism" (nth output-lines 3))))))))
+          (is (= 13087 (.size output-lines)))
+          (is (= "Anarchism\tanarchism" (nth output-lines 0)))
+          (is (= "Anarchism\tis" (nth output-lines 1)))
+          (is (= "Anarchism\ta" (nth output-lines 2)))
+          (is (= "Anarchism\tpolitical" (nth output-lines 3))))))))
