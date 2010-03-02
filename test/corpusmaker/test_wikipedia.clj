@@ -31,29 +31,43 @@
 
 (deftest test-tokenize
   (is (=
-    (list "term1" "term2" "term3")
+    '("term1" "term2" "term3")
     (tokenize "term1 term2 term3")))
   (is (=
-    (list
-      "This" "is" "an" "internal" "link" "to" "another" "Wikipedia" "article")
+    '("This" "is" "an" "internal" "link" "to" "another" "Wikipedia" "article")
     (tokenize
       "This is an [[internal link]] to another *Wikipedia* article."))))
 
+(deftest test-tokenize-wikipedia
+  (let [articles (collect-text *sample-dumpfile*)
+        article-tokens (map tokenize articles)]
+    (is (=
+      '("pp" "move" "indef" "Anarchism" "sidebar" "Anarchism" "is"
+        "a" "political" "philosophy" "encompassing" "anarchist")
+      (take 12 (first article-tokens))))
+        (is (=
+      '("NOTES" "1" "Please" "follow" "the" "Wikipedia" "style"
+        "guidelines" "for" "editing" "medical" "articles")
+      (take 12 (second article-tokens))))))
+
 (deftest test-ngrams
   (is (=
-    (list (list 0 1 2) (list 1 2 3) (list 2 3 4))
+    (list
+      '(0 1 2)
+      '(1 2 3)
+      '(2 3 4))
     (ngrams 3 (range 5))))
   (is (=
     (list
-      (list "This" "is" "a")
-      (list "is" "a" "test"))
+      '("This" "is" "a")
+      '("is" "a" "test"))
     (ngrams 3 (tokenize "This [[is]] a test."))))
   (is (=
     (list
-      (list nil nil "This")
-      (list nil "This" "is")
-      (list "This" "is" "a")
-      (list "is" "a" "test")
-      (list "a" "test" nil)
-      (list "test" nil nil))
+      '(nil nil "This")
+      '(nil "This" "is")
+      '("This" "is" "a")
+      '("is" "a" "test")
+      '("a" "test" nil)
+      '("test" nil nil))
     (padded-ngrams 3 (tokenize "This [[is]] a test.")))))

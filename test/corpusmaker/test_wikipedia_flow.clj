@@ -42,10 +42,27 @@
               {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
               (c/lfs-tap (c/text-line ["title"]) sink-path)
               (-> (c/pipe "wikipedia") (ccw/remove-redirect)))]
-        ;; run the flow
         (c/exec flow)
-        ;; parse check the output text file contents in the sink folder
         (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
           (is (= 2 (.size output-lines)))
           (is (= "Anarchism" (first output-lines)))
           (is (= "Autism" (second output-lines))))))))
+
+(deftest test-unigrams
+  (with-log-level :warn
+    (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
+      (let [flow
+            (c/flow
+              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
+              (c/lfs-tap (c/text-line ["title", "unigram"]) sink-path)
+              (->
+                (c/pipe "wikipedia")
+                (ccw/remove-redirect)
+                (ccw/unigrams)))]
+        (c/exec flow)
+        (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
+          (is (= 28506 (.size output-lines)))
+          (is (= "Anarchism\tpp" (nth output-lines 0)))
+          (is (= "Anarchism\tmove" (nth output-lines 1)))
+          (is (= "Anarchism\tindef" (nth output-lines 2)))
+          (is (= "Anarchism\tAnarchism" (nth output-lines 3))))))))

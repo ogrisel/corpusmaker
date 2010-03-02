@@ -9,9 +9,11 @@
 ;; utilities to build cascading flows for Wikipedia content
 
 (ns corpusmaker.cascading.wikipedia
-  (:use corpusmaker.wikipedia)
-  (:require (cascading.clojure [api :as c]))
-  (:import corpusmaker.cascading.scheme.WikipediaPageScheme
+  (:require
+    (cascading.clojure [api :as c])
+    (corpusmaker [wikipedia :as w]))
+  (:import
+    corpusmaker.cascading.scheme.WikipediaPageScheme
     info.bliki.wiki.model.WikiModel
     corpusmaker.wikipedia.LinkAnnotationTextConverter
     corpusmaker.wikipedia.Annotation))
@@ -30,5 +32,9 @@
 (defn remove-redirect
   "Filter pages that carry a #REDIRECT marker"
   [#^Pipe previous]
-  (c/filter previous ["markup"] #'no-redirect?))
+  (c/filter previous ["markup"] #'w/no-redirect?))
 
+(defn unigrams
+  "Compute the tokens vector of the markup content"
+  [#^Pipe previous]
+  (c/mapcat previous ["markup"] ["unigram" #'w/tokenize] ["title" "unigram"]))
