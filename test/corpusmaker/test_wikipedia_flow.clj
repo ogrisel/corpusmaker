@@ -71,3 +71,29 @@
           (is (= "Anarchism\tis" (nth output-lines 1)))
           (is (= "Anarchism\ta" (nth output-lines 2)))
           (is (= "Anarchism\tpolitical" (nth output-lines 3))))))))
+
+
+(defn- more-than-one? [count] (> count 1))
+
+(deftest test-trigrams
+  (with-log-level :warn
+    (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
+      (let [flow
+            (c/flow
+              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
+              (c/lfs-tap (c/text-line ["trigram" "count"]) sink-path)
+              (->
+                (c/pipe "wikipedia")
+                (ccw/remove-redirect)
+                (ccw/parse-markup)
+                (ccw/trigrams)
+                (c/group-by "trigram")
+                (c/count "count")
+                (c/filter ["count"] #'more-than-one?)))]
+        (c/exec flow)
+        (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
+          (is (= 475 (.size output-lines)))
+          (is (= "6 per 1,000\t2" (nth output-lines 0)))
+          (is (= "a form of\t3" (nth output-lines 1)))
+          (is (= "a high level\t2" (nth output-lines 2)))
+          (is (= "a history of\t2" (nth output-lines 3))))))))
