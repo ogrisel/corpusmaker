@@ -4,7 +4,6 @@
   :repositories {"info-bliki" "http://gwtwiki.googlecode.com/svn/maven-repository/"}
   :dependencies [[org.clojure/clojure "1.1.0"]
                  [org.clojure/clojure-contrib "1.1.0"]
-                 [redis-clojure "1.0-SNAPSHOT"]
                  [stax "1.2.0"]
                  [info.bliki.wiki/bliki-core "3.0.13"]
                  [commons-lang "2.4"]

@@ -19,34 +19,23 @@
       (catch java.io.FileNotFoundException fnfe
         (println "ERROR:" (.getMessage fnfe)) 2))))
 
-(defn handle-load-types [args]
+(defn handle-build-index [args]
   (with-command-line
     args
-    "WP page URL to DBpedia types database creation using a Redis server"
-    [[redis-host "The Redis DB hostname or IP" "localhost"]
-     [redis-port "The Redis DB port number" 6379]
-     [input-folder i "Folder that holds the DBpedia dumps" "."]
-     [flush-db? "Flush the Redis DBs before importing"]
+    "Load DBpedia resources into a lucene fulltext index"
+    [[input-folder i "Folder that holds the DBpedia dumps" "."]
+     [index-dir d "Lucene FSDirectory location" "."]
      remaining]
-    (println "redis host: " redis-host)
-    (println "redis port: " redis-port)
-    (println "input folder: " input-folder)
-    (println "flush database: " (if flush-db? "yes" "no"))
     (let [server-params {:host redis-host :port redis-port}]
       (try
-        (when flush-db?
-          (flush-all-dbs server-params))
         ;; TODO: find a way to report progress?
-        (time (build-page-type-db input-folder server-params)) 0
-        (catch java.net.ConnectException ce
-          (println "ERROR: failed to connect to redis host" redis-host
-                   "on port" redis-port) 1)
+        (time (println "Implement me!")) 0
         (catch java.io.FileNotFoundException fnfe
           (println "ERROR: could not load DBpedia dumps:" (.getMessage fnfe))
           2)))))
 
 (def *commands*
-  {"load-types" handle-load-types
+  {"build-index" handle-build-index
    "chunk" handle-chunk})
 
 (defn -main [& args]

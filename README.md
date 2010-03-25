@@ -55,21 +55,15 @@ directly from the EBS volume.
 
 ## Usage
 
+### Build a lucene index of DBpedia resources
+
+Build a fulltext (Lucene-based) index of the abstracts of DBpedia resources:
+
+    $ java -cp corpusmaker-standalone.jar corpusmaker.cli build-index \
+     --input-folder ~/data/dbpedia \
+     --index-dir  ~/lucene/dbpedia-index
+
 ### Building a NER training / evaluation corpus
-
-To build the Named Entities Recognition corpus, first setup a
-[Redis](http://code.google.com/p/redis/) database server that will be used to
-store [wiki page URL] => [list of DBpedia matching types] association by
-extracting the DBpedia files in a local folder:
-
-    $ java -cp corpusmaker-standalone.jar corpusmaker.cli load-types --input-folder ~/data/dbpedia --flush-db
-    redis host:  localhost
-    redis port:  6379
-    input folder:  /home/ogrisel/data/dbpedia
-    flush database:  yes
-
-(The process takes approximately 15min on my laptop and the Redis DB memory
-size is approximately ~900MB)
 
 TODO: Explain howto extract a BIO-formatted corpus suitable for the training of
 sequence labeling algorithms such as CRFs with
