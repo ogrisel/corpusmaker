@@ -75,6 +75,7 @@
 
 (defn- more-than-one? [count] (> count 1))
 
+(comment
 (deftest test-trigrams
   (with-log-level :warn
     (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
@@ -97,3 +98,4 @@
           (is (= "a form of\t3" (nth output-lines 1)))
           (is (= "a high level\t2" (nth output-lines 2)))
           (is (= "a history of\t2" (nth output-lines 3))))))))
+)
