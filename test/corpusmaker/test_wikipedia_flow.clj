@@ -5,12 +5,12 @@
     (clojure.contrib [duck-streams :as ds])
     (clojure.contrib [java-utils :as ju])
     (clj-json [core :as json])
-    (corpusmaker.cascading [wikipedia :as ccw])))
+    (corpusmaker [wikipedia :as w])))
 
 (def *sample-dumpfile* "test/enwiki-20090902-pages-articles-sample.xml")
 
 (defn up-title
-  {:fields ["up-title" "start-markup"]}
+  {:fn> ["up-title" "start-markup"]}
   [title markup]
   [(.toUpperCase title) (-> markup (.replace "\n" " ") (.substring 0 30))])
 
@@ -21,11 +21,11 @@
       ;; create a flow from wikipedia raw format to text lines
       (let [flow
             (c/flow
-              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
+              {"wikipedia" (w/wikipedia-tap *sample-dumpfile*)}
               (c/lfs-tap (c/text-line ["up-title" "start-markup"]) sink-path)
               (->
                 (c/pipe "wikipedia")
-                (c/map ["title" "markup"] #'up-title)))]
+                (c/map #'up-title :< ["title" "markup"] :fn> ["up-title" "start-markup"])))]
         ;; run the flow
         (c/exec flow)
         ;; parse check the output text file contents in the sink folder
@@ -41,11 +41,11 @@
     (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
       (let [flow
             (c/flow
-              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
+              {"wikipedia" (w/wikipedia-tap *sample-dumpfile*)}
               (c/lfs-tap (c/text-line ["title"]) sink-path)
               (->
                 (c/pipe "wikipedia")
-                (ccw/remove-redirect)))]
+                (c/filter #'w/no-redirect? :< "markup")))]
         (c/exec flow)
         (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
           (is (= 2 (.size output-lines)))
@@ -57,13 +57,14 @@
     (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
       (let [flow
             (c/flow
-              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
+              {"wikipedia" (w/wikipedia-tap *sample-dumpfile*)}
               (c/lfs-tap (c/text-line ["title", "unigram"]) sink-path)
               (->
                 (c/pipe "wikipedia")
-                (ccw/remove-redirect)
-                (ccw/parse-markup)
-                (ccw/unigrams)))]
+                (c/filter #'w/no-redirect? :< "markup")
+                (c/map #'w/parse-markup :< "markup" :> ["title" "text"])
+                (c/mapcat #'w/tokenize-text
+                  :< "text" :fn> "unigram" :> ["title" "unigram"])))]
         (c/exec flow)
         (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
           (is (= 13087 (.size output-lines)))
@@ -71,31 +72,3 @@
           (is (= "Anarchism\tis" (nth output-lines 1)))
           (is (= "Anarchism\ta" (nth output-lines 2)))
           (is (= "Anarchism\tpolitical" (nth output-lines 3))))))))
-
-
-(defn- more-than-one? [count] (> count 1))
-
-(comment
-(deftest test-trigrams
-  (with-log-level :warn
-    (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
-      (let [flow
-            (c/flow
-              {"wikipedia" (ccw/wikipedia-tap *sample-dumpfile*)}
-              (c/lfs-tap (c/text-line ["trigram" "count"]) sink-path)
-              (->
-                (c/pipe "wikipedia")
-                (ccw/remove-redirect)
-                (ccw/parse-markup)
-                (ccw/trigrams)
-                (c/group-by "trigram")
-                (c/count "count")
-                (c/filter ["count"] #'more-than-one?)))]
-        (c/exec flow)
-        (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
-          (is (= 475 (.size output-lines)))
-          (is (= "6 per 1,000\t2" (nth output-lines 0)))
-          (is (= "a form of\t3" (nth output-lines 1)))
-          (is (= "a high level\t2" (nth output-lines 2)))
-          (is (= "a history of\t2" (nth output-lines 3))))))))
-)

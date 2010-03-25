@@ -24,6 +24,8 @@
 
 ;; RE to parse a line of a N-TRIPLES RDF stream to find a type relationship
 ;; http://www.w3.org/TR/rdf-testcases/#ntriples
+(def *uri-uri-literal-pattern*
+  #"<([^<]+?)> <([^<]+?)> \"(.*)\"@(\w\w) \.")
 (def *type-pattern*
   #"<([^<]+?)> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <([^<]+?)> \.")
 (def *page-pattern*

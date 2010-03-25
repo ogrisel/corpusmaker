@@ -13,6 +13,8 @@
   (:use
     clojure.contrib.duck-streams
     clojure.contrib.str-utils)
+  (:require
+    (cascading.clojure [api :as c]))
   (:import
     java.util.regex.Pattern
     javax.xml.stream.XMLInputFactory
@@ -25,7 +27,8 @@
     org.apache.lucene.util.Version
     org.apache.lucene.wikipedia.analysis.WikipediaTokenizer
     corpusmaker.wikipedia.LinkAnnotationTextConverter
-    corpusmaker.wikipedia.Annotation))
+    corpusmaker.wikipedia.Annotation
+    corpusmaker.cascading.scheme.WikipediaPageScheme))
 
 ;; Simple utility to chunk a wikidump file into smaller files suitable for
 ;; parallel processing locally (using pmap) or with Hadoop MapReduce
@@ -112,12 +115,13 @@
 
 (defn parse-markup
   "Remove wikimarkup while collecting links to entities and categories"
+  {:fn> ["text", "links", "categories"]}
   [page-markup]
   (let [#^WikiModel model (LinkAnnotationTextConverter/newWikiModel)
         converter (LinkAnnotationTextConverter.)
         text (.render model converter page-markup)]
-    {:text text :categories (-> model (.getCategories) (.keySet) set)
-     :links (vec (map annotation (.getWikiLinks converter)))}))
+    [text (vec (map annotation (.getWikiLinks converter)))
+     (-> model (.getCategories) (.keySet) set)]))
 
 (defn tokenizer-seq
   "Build a lazy-seq out of a tokenizer with TermAttribute"
@@ -167,8 +171,9 @@
     (let [pad (repeat (dec n) pad)]
       (partition  n 1 (concat pad tokens pad)))))
 
-(comment
-  (use 'corpusmaker.wikipedia)
-  (time (dorun (collect-text "chunk-0001.xml")))
-)
+(defn wikipedia-tap
+  "Build a Cascading source tap from a wikipedia XML dump"
+  [input-path-or-file]
+  (c/hfs-tap (WikipediaPageScheme.) input-path-or-file))
+
 

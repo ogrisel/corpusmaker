@@ -22,12 +22,12 @@
   (let [articles (collect-text *sample-dumpfile*)]
     (is (= 2 (count articles)))
     (is (= "{{pp-move-indef}}{{Anarchism s" (.substring (first articles) 0 30 )))
-    (let [anarchism (parse-markup (first articles))]
+    (let [[text links categories] (parse-markup (first articles))]
       (is (= #{"Anarchism" "Political culture"
                "Social theories"
-               "Political ideologies"} (:categories anarchism)))
-      (is (= 465 (count (:links anarchism))))
-      (is (= "political philosophy" (:label (first (:links anarchism))))))))
+               "Political ideologies"} categories))
+      (is (= 465 (count links)))
+      (is (= "political philosophy" (:label (first links)))))))
 
 (deftest test-tokenize
   (is (=
