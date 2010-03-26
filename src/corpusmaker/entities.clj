@@ -42,14 +42,12 @@
 
 (defn extract-property
   "Extract entity propety value (object is a literal)"
-  {:fn> ["resource" "property" "value" "lang"]}
   [line]
   (let [[r p v l] (rest (re-find *uri-uri-literal-pattern* line))]
     [(url-decode r) (url-decode p) (.replace v "\\\"" "\"") l]))
 
 (defn extract-relation
   "Extract entities relationsips (subject predicate and object are URIs)"
-  {:fn> ["src-entity" "relation" "target-entity"]}
   [line]
   (map url-decode (rest (re-find *uri-uri-uri-pattern* line))))
 

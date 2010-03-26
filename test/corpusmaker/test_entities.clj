@@ -6,7 +6,12 @@
   (:require
     [clojure.contrib.java-utils :as ju]
     [clojure.contrib.duck-streams :as ds]
-    [cascading.clojure.api :as c]))
+    [cascading.clojure.api :as c])
+  (:import cascading.tuple.Fields))
+
+(defn serialize-tuple
+  [& tuple-elems]
+  (pr-str (vec tuple-elems)))
 
 (def *long-abstract* "test/dbpedia_3.4_longabstract_en.nt")
 (def *instance-type* "test/dbpedia_3.4_instancetype_en.nt")
@@ -34,11 +39,18 @@
     (with-tmp-files [sink (temp-path "corpusmaker-test-sink")]
       (let [flow (c/flow
         {"abstracts" (c/lfs-tap (c/text-line "line") *long-abstract*)}
-        (c/lfs-tap (c/clojure-line) sink)
+        (c/lfs-tap (c/text-line) sink)
         (->
           (c/pipe "abstracts")
-          (c/map #'extract-property :< "line" :> ["resource" "value"])))]
+          (c/map #'extract-property
+            :< "line"
+            :fn> ["resource" "property" "value" "lang"]
+            :> ["resource" "value"])
+          (c/map #'serialize-tuple :< Fields/ALL :fn> "line" :> "line")))]
         (c/exec flow)
         (let [results (map read-string (ds/read-lines (ju/file sink "part-00000")))]
-          (is (= 23 (.size results))))))))
+          (is (= 23 (.size results)))
+          (let [[resource value] (first results)]
+            (is (= "http://dbpedia.org/resource/!!!" resource))
+            (is (= "!!! is a dance-punk band" (.substring value 0 24)))))))))
 
