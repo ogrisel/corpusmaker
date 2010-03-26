@@ -11,4 +11,5 @@
                  [org.apache.lucene/lucene-wikipedia "3.0.1"]
                  [cascading-clojure "1.0.0-SNAPSHOT"]]
   :dev-dependencies [[lein-clojars "0.5.0-SNAPSHOT"]
-                     [lein-javac "0.0.2-SNAPSHOT"]])
+                     [lein-javac "0.0.2-SNAPSHOT"]]
+  :main corpusmaker.cli)

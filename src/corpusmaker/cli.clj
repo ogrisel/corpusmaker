@@ -26,13 +26,12 @@
     [[input-folder i "Folder that holds the DBpedia dumps" "."]
      [index-dir d "Lucene FSDirectory location" "."]
      remaining]
-    (let [server-params {:host redis-host :port redis-port}]
-      (try
-        ;; TODO: find a way to report progress?
-        (time (println "Implement me!")) 0
-        (catch java.io.FileNotFoundException fnfe
-          (println "ERROR: could not load DBpedia dumps:" (.getMessage fnfe))
-          2)))))
+    (try
+      ;; TODO: find a way to report progress?
+      (time (println "Implement me!")) 0
+      (catch java.io.FileNotFoundException fnfe
+        (println "ERROR: could not load DBpedia dumps:" (.getMessage fnfe))
+        2))))
 
 (def *commands*
   {"build-index" handle-build-index
