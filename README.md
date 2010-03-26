@@ -43,6 +43,8 @@ The DBPedia links and entities types datasets are available here:
 
   [instancetype_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/instancetype_en.nt.bz2)
 
+  [longabstract_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/longabstract_en.nt.bz2)
+
 All of those datasets are also available from the Amazon cloud as public EBS
 volumes:
 
