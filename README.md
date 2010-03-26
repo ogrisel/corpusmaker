@@ -59,7 +59,7 @@ directly from the EBS volume.
 
 Build a fulltext (Lucene-based) index of the abstracts of DBpedia resources:
 
-    $ java -cp corpusmaker-standalone.jar corpusmaker.cli build-index \
+    $ java -jar corpusmaker-standalone.jar build-index \
      --input-folder ~/data/dbpedia \
      --index-dir  ~/lucene/dbpedia-index
 
