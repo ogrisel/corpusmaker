@@ -72,4 +72,16 @@
           (let [[resource value type] (first results)]
             (is (= "http://dbpedia.org/resource/!!!" resource))
             (is (= "!!! is a dance-punk band" (.substring value 0 24)))
-            (is (= "http://dbpedia.org/ontology/Organisation" type))))))))
+            (is (= "http://dbpedia.org/ontology/Organisation" type)))
+          (let [[resource value type] (second results)]
+            (is (= "http://dbpedia.org/resource/!!!Fuck_You!!!" resource))
+            (is (= "!!!Fuck You!!! is an EP" (.substring value 0 23)))
+            (is (= "http://dbpedia.org/ontology/Work" type)))
+          (let [[resource value type] (nth results 2)]
+            (is (= "http://dbpedia.org/resource/!!!Fuck_You!!!_and_Then_Some" resource))
+            (is (= "!!!Fuck You!!! and Then Some is a 1996 reissue" (.substring value 0 46)))
+            (is (= "http://dbpedia.org/ontology/Work" type)))
+          (let [[resource value type] (last results)]
+            (is (= "http://dbpedia.org/resource/\"C\"_Is_for_Corpse" resource))
+            (is (= "\"C\" Is for Corpse is the third novel" (.substring value 0 36)))
+            (is (= "http://dbpedia.org/ontology/Work" type))))))))
