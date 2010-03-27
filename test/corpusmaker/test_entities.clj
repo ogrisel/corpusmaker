@@ -34,8 +34,6 @@
       (is (= "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" relation))
       (is (= "http://www.w3.org/2002/07/owl#Thing" target)))))
 
-(def agg-cons (c/agg cons ()))
-
 (deftest entity-literal-parsing-test
   (with-log-level :warn
     (with-tmp-files [sink (temp-path "corpusmaker-test-sink")]
@@ -53,11 +51,14 @@
               (c/map #'extract-relation
                 :< "line"
                 :fn> ["resource" "p_type" "type"]
-                :> ["resource" "type"]))
+                :> ["offset" "resource" "type"])
+              (c/filter #'not-owl-thing? :< "type") ; remove owl:Thing lines
+              (c/group-by "resource" "offset") ; preserve file order using offset
+              (c/first "type")) ; select the most generic type (trust file order)
             flow
             (c/flow
               {"abstracts" (c/lfs-tap (c/text-line "line") *long-abstract*)
-               "types" (c/lfs-tap (c/text-line "line") *instance-type*)}
+               "types" (c/lfs-tap (c/text-line ["offset" "line"]) *instance-type*)}
               (c/lfs-tap (c/text-line) sink)
               (-> [p-abstracts p-types]
                 (c/inner-join
@@ -67,8 +68,8 @@
                 (c/map #'serialize-tuple :< Fields/ALL :fn> "line" :> "line")))]
         (c/exec flow)
         (let [results (map read-string (ds/read-lines (ju/file sink "part-00000")))]
-          (is (= 54 (.size results)))
+          (is (= 16 (.size results)))
           (let [[resource value type] (first results)]
             (is (= "http://dbpedia.org/resource/!!!" resource))
             (is (= "!!! is a dance-punk band" (.substring value 0 24)))
-            (is (= "http://dbpedia.org/ontology/Band" type))))))))
+            (is (= "http://dbpedia.org/ontology/Organisation" type))))))))

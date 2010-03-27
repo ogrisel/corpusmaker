@@ -32,7 +32,7 @@
 (def *uri-uri-uri-pattern* #"<([^<]+?)> <([^<]+?)> <([^<]+?)> \.")
 (def *uri-uri-literal-pattern* #"<([^<]+?)> <([^<]+?)> \"(.*)\"@(\w\w) \.")
 
-(def *owl-Thing* "http://www.w3.org/2002/07/owl#Thing")
+(def *owl-thing* "http://www.w3.org/2002/07/owl#Thing")
 (def *rdf-type* "http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
 (def *foaf-page* "http://xmlns.com/foaf/0.1/page")
 
@@ -51,3 +51,7 @@
   [line]
   (map url-decode (rest (re-find *uri-uri-uri-pattern* line))))
 
+(defn not-owl-thing?
+  "Helper to filter out owl:Thing lines"
+  [type]
+  (not= type *owl-thing*))
