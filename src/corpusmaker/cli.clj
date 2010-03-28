@@ -1,8 +1,8 @@
 (ns corpusmaker.cli
   (:gen-class)
   (:use corpusmaker.wikipedia
-     corpusmaker.entities
-     clojure.contrib.command-line))
+    corpusmaker.entities
+    clojure.contrib.command-line))
 
 (defn handle-chunk [args]
   (with-command-line
@@ -26,12 +26,16 @@
     [[input-folder i "Folder that holds the DBpedia dumps" "."]
      [index-dir d "Lucene FSDirectory location" "."]
      remaining]
+    (println "indexing dbpedia content of" input-folder "into" index-dir)
     (try
       ;; TODO: find a way to report progress?
-      (time (println "Implement me!")) 0
+      (time (index-entities input-folder index-dir)) 0
       (catch java.io.FileNotFoundException fnfe
         (println "ERROR: could not load DBpedia dumps:" (.getMessage fnfe))
-        2))))
+        2)
+      (catch java.io.IOError ioe
+        (println "ERROR: failed to create lucene index:" (.getMessage ioe))
+        3))))
 
 (def *commands*
   {"build-index" handle-build-index

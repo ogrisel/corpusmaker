@@ -38,23 +38,23 @@
 (def *foaf-page* "http://xmlns.com/foaf/0.1/page")
 
 (defn url-decode
-  [url]
+  [#^String url]
   (java.net.URLDecoder/decode url))
 
 (defn extract-property
   "Extract entity propety value (object is a literal)"
-  [line]
-  (let [[r p v l] (rest (re-find *uri-uri-literal-pattern* line))]
+  [#^String line]
+  (let [[r p #^String v l] (rest (re-find *uri-uri-literal-pattern* line))]
     [(url-decode r) (url-decode p) (.replace v "\\\"" "\"") l]))
 
 (defn extract-relation
   "Extract entities relationsips (subject predicate and object are URIs)"
-  [line]
+  [#^String line]
   (map url-decode (rest (re-find *uri-uri-uri-pattern* line))))
 
 (defn not-owl-thing?
   "Helper to filter out owl:Thing lines"
-  [type]
+  [#^String type]
   (not= type *owl-thing*))
 
 (defn serialize-tuple
@@ -100,3 +100,8 @@
       (c/lfs-tap (c/text-line) out-folder)
       (c/map joined #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
     (c/exec flow)))
+
+(defn index-entities
+  "Build a lucene index for DBPedia entites"
+  [dbpedia-folder fsdirectory]
+  (println "Implement me!"))
