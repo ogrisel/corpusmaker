@@ -119,7 +119,8 @@
   (doall
     (map #(do
       (println "loading" (.getAbsolutePath %) "into model...")
-      (.read model (java.io.FileInputStream. %) nil))
+      ;; TODO: auto detect format based on file suffix
+      (.read model (java.io.FileInputStream. %) nil "N-TRIPLE"))
       files)))
 
 (defn build-model
@@ -131,7 +132,7 @@
     (let [model (if (nil? tdb-directory)
       (ModelFactory/createDefaultModel)
       (TDBFactory/createModel tdb-directory))]
-      (load-into-model model files)
+      (load-into-model model (map file-str files))
       model)))
 
 (defn index-model
