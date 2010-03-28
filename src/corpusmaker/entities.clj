@@ -64,7 +64,7 @@
 
 (defn join-abstract-type
   "Execute a flow to join type and abstract info"
-  [abstract-file type-file out-file]
+  [abstract-file type-file out-folder]
   (let [
     ;; first pipe to extract abstracts data
     p-abstracts (->
@@ -97,6 +97,6 @@
     flow (c/flow
       {"abstracts" (c/lfs-tap (c/text-line "line") abstract-file)
        "types" (c/lfs-tap (c/text-line ["offset" "line"]) type-file)}
-      (c/lfs-tap (c/text-line) out-file)
+      (c/lfs-tap (c/text-line) out-folder)
       (c/map joined #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
     (c/exec flow)))
