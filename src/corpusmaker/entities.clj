@@ -16,7 +16,8 @@
     (cascading.clojure [api :as c]))
   (:import
     cascading.operation.regex.RegexParser
-    cascading.pipe.Each))
+    cascading.pipe.Each
+    cascading.tuple.Fields))
 
 ;; Utilities to parse DBPedia N-TRIPLES and make it easier to
 ;; process them in cascading flows
@@ -55,3 +56,47 @@
   "Helper to filter out owl:Thing lines"
   [type]
   (not= type *owl-thing*))
+
+(defn serialize-tuple
+  "Helper to serializa tuples of clojure values into TextLine schemes"
+  [& tuple-elems]
+  (pr-str (vec tuple-elems)))
+
+(defn join-abstract-type
+  "Execute a flow to join type and abstract info"
+  [abstract-file type-file out-file]
+  (let [
+    ;; first pipe to extract abstracts data
+    p-abstracts (->
+      (c/pipe "abstracts")
+      (c/map #'extract-property
+        :< "line"
+        :fn> ["resource" "p_abstract" "abstract" "lang"]
+        :> ["resource" "abstract"]))
+
+    ;; second pipe to extract typing info
+    p-types (->
+      (c/pipe "types")
+      (c/map #'extract-relation
+        :< "line"
+        :fn> ["resource" "p_type" "type"]
+        :> ["offset" "resource" "type"])
+      (c/filter #'not-owl-thing? :< "type") ; remove owl:Thing lines
+      (c/group-by "resource" "offset") ; preserve file order using offset
+      (c/first "type")) ; select the most generic type (trust file order)
+
+    ;; join the first two pipes on resource URI as key
+    joined (->
+      [p-abstracts p-types]
+      (c/inner-join
+        [["resource"] ["resource"]]
+        ["resource1" "abstract" "resource2" "type"])
+      (c/select ["resource1" "abstract" "type"]))
+
+    ;; map plug in the input files, results serialization and execute
+    flow (c/flow
+      {"abstracts" (c/lfs-tap (c/text-line "line") abstract-file)
+       "types" (c/lfs-tap (c/text-line ["offset" "line"]) type-file)}
+      (c/lfs-tap (c/text-line) out-file)
+      (c/map joined #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
+    (c/exec flow)))
