@@ -11,13 +11,20 @@
 
 (ns corpusmaker.entities
   (:use
-    [clojure.contrib.duck-streams :only (read-lines)])
+    [clojure.contrib.duck-streams :only (read-lines file-str)])
   (:require
     (cascading.clojure [api :as c]))
   (:import
     cascading.operation.regex.RegexParser
     cascading.pipe.Each
-    cascading.tuple.Fields))
+    cascading.tuple.Fields
+    com.hp.hpl.jena.rdf.model.ModelFactory
+    com.hp.hpl.jena.tdb.TDBFactory
+    org.apache.lucene.analysis.standard.StandardAnalyzer
+    org.apache.lucene.util.Version
+    org.apache.lucene.store.FSDirectory
+    org.apache.lucene.index.IndexWriter
+    org.apache.lucene.index.IndexWriter$MaxFieldLength))
 
 ;; Utilities to parse DBPedia N-TRIPLES and make it easier to
 ;; process them in cascading flows
@@ -41,6 +48,8 @@
   [#^String url]
   (java.net.URLDecoder/decode url))
 
+;; TODO: the following is buggy: unicode ASCII encoded symbols needs to be taken
+;; cared of
 (defn extract-property
   "Extract entity propety value (object is a literal)"
   [#^String line]
@@ -62,6 +71,8 @@
   [& tuple-elems]
   (pr-str (vec tuple-elems)))
 
+;; This is useless since DBpedia can fit in memory and its better to use jena + lucene
+;; directly
 (defn join-abstract-type
   "Execute a flow to join type and abstract info"
   [abstract-file type-file out-folder]
@@ -101,7 +112,43 @@
       (c/map joined #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
     (c/exec flow)))
 
+(defn load-into-model
+  "Load RDF files into a Jena model"
+  [model files]
+  ;; TODO handle compressed files
+  (doall
+    (map #(do
+      (println "loading" (.getAbsolutePath %) "into model...")
+      (.read model (java.io.FileInputStream. %) nil))
+      files)))
+
+(defn build-model
+  "Build model (in memory or in TDB backend) and load RDF files into it"
+  ;; TODO: initialise good namespace prefixes
+  ([files]
+    (build-model nil files))
+  ([#^String tdb-directory files]
+    (let [model (if (nil? tdb-directory)
+      (ModelFactory/createDefaultModel)
+      (TDBFactory/createModel tdb-directory))]
+      (load-into-model model files)
+      model)))
+
+(defn index-model
+  "Build a lucene index to index all resources of a Model"
+  [model fsdirectory]
+  (let [analyzer (StandardAnalyzer. Version/LUCENE_30)
+        dir (FSDirectory/open (file-str fsdirectory))
+        max-len (IndexWriter$MaxFieldLength. 2500)]
+    (with-open [index-writer (IndexWriter. dir analyzer true max-len)]
+      (println "Implement me!"))))
+
 (defn index-entities
   "Build a lucene index for DBPedia entites"
   [dbpedia-folder fsdirectory]
-  (println "Implement me!"))
+  (let [files
+        (remove #(.isDirectory %)
+          (file-seq (file-str dbpedia-folder)))]
+    (with-open [model (build-model files)]
+      (index-model model fsdirectory))))
+
