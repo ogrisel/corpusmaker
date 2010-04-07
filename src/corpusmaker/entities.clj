@@ -112,6 +112,26 @@
       (c/map joined-pipe #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
     (c/exec flow)))
 
+(defn count-incoming
+  "Count the number of incoming links to a resource for simple popularity ranking"
+  [link-file out-folder]
+  (let [
+    link-pipe (->
+      (c/pipe "links")
+      (c/map #'extract-relation
+        :< "line" :fn> ["from" "link-prop" "to"] :> ["from" "to"])
+      (c/group-by "to")
+      (c/count "incoming-count")
+      (c/group-by "incoming-count" "to" true)
+      (c/select ["to" "incoming-count"])) ;; order by incoming
+
+    ;; map plug in the input files, results serialization and execute
+    flow (c/flow
+      {"links" (c/lfs-tap (c/text-line "line") link-file)}
+      (c/lfs-tap (c/text-line) out-folder)
+      (c/map link-pipe #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
+    (c/exec flow)))
+
 (defn load-into-model
   "Load RDF files into a Jena model"
   [model files]
