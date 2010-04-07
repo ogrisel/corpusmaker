@@ -78,7 +78,7 @@
   [abstract-file type-file out-folder]
   (let [
     ;; first pipe to extract abstracts data
-    p-abstracts (->
+    abstracts-pipe (->
       (c/pipe "abstracts")
       (c/map #'extract-property
         :< "line"
@@ -86,7 +86,7 @@
         :> ["resource" "abstract"]))
 
     ;; second pipe to extract typing info
-    p-types (->
+    types-pipe (->
       (c/pipe "types")
       (c/map #'extract-relation
         :< "line"
@@ -97,8 +97,8 @@
       (c/first "type")) ; select the most generic type (trust file order)
 
     ;; join the first two pipes on resource URI as key
-    joined (->
-      [p-abstracts p-types]
+    joined-pipe (->
+      [abstracts-pipe types-pipe]
       (c/inner-join
         [["resource"] ["resource"]]
         ["resource1" "abstract" "resource2" "type"])
@@ -109,7 +109,7 @@
       {"abstracts" (c/lfs-tap (c/text-line "line") abstract-file)
        "types" (c/lfs-tap (c/text-line ["offset" "line"]) type-file)}
       (c/lfs-tap (c/text-line) out-folder)
-      (c/map joined #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
+      (c/map joined-pipe #'serialize-tuple :< Fields/ALL :fn> "line" :> "line"))]
     (c/exec flow)))
 
 (defn load-into-model
