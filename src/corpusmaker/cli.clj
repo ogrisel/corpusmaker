@@ -4,6 +4,19 @@
     corpusmaker.entities
     clojure.contrib.command-line))
 
+(defn handle-count-incoming [args]
+  (with-command-line
+    args
+    "Compute the incoming links count for dbpedia resources"
+    [[pagelinks-file "The input file in N-TRIPLE format"]
+     [output-folder "The output folder" "."] ;; TODO handle HDFS URLs
+     remaining]
+    (try
+      ;; TODO: find a way to report progress?
+      (time (count-incoming pagelinks-file output-folder)) 0
+      (catch java.io.FileNotFoundException fnfe
+        (println "ERROR:" (.getMessage fnfe)) 2))))
+
 (defn handle-chunk [args]
   (with-command-line
     args
@@ -39,6 +52,7 @@
 
 (def *commands*
   {"build-index" handle-build-index
+   "count-incoming" handle-count-incoming
    "chunk" handle-chunk})
 
 (defn -main [& args]
