@@ -49,7 +49,7 @@
   (java.net.URLDecoder/decode url))
 
 ;; TODO: the following is buggy: unicode ASCII encoded symbols needs to be taken
-;; cared of
+;; care of (see the Jena N-TRIPLE literal parsing code for instance)
 (defn extract-property
   "Extract entity propety value (object is a literal)"
   [#^String line]
