@@ -10,8 +10,13 @@
                  [org.apache.lucene/lucene-core "3.0.1"]
                  [org.apache.lucene/lucene-wikipedia "3.0.1"]
                  [com.hp.hpl.jena/jena "2.6.2"]
-                 [com.hp.hpl.jena/arq "2.8.2"]
                  [com.hp.hpl.jena/tdb "0.8.4"]
+                 [com.hp.hpl.jena/arq "2.8.2"]
+                 [log4j "1.2.13" 
+                   :exclusions [javax.mail/mail
+                                javax.jms/jms
+                                com.sun.jdmk/jmxtools
+                                com.sun.jmx/jmxri]]
                  [cascading-clojure "1.0.0-SNAPSHOT"]]
   :dev-dependencies [[lein-clojars "0.5.0-SNAPSHOT"]
                      [lein-javac "0.0.2-SNAPSHOT"]]
