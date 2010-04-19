@@ -54,12 +54,12 @@
   "Extract entity propety value (object is a literal)"
   [#^String line]
   (let [[r p #^String v l] (rest (re-find *uri-uri-literal-pattern* line))]
-    [(url-decode r) (url-decode p) (.replace v "\\\"" "\"") l]))
+    [r p (.replace v "\\\"" "\"") l]))
 
 (defn extract-relation
   "Extract entities relationsips (subject predicate and object are URIs)"
   [#^String line]
-  (map url-decode (rest (re-find *uri-uri-uri-pattern* line))))
+  (rest (re-find *uri-uri-uri-pattern* line)))
 
 (defn not-owl-thing?
   "Helper to filter out owl:Thing lines"
