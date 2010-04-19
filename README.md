@@ -78,7 +78,7 @@ directly from the EBS volume.
 
 ### Evaluate popularity of entities by counting incoming links
 
-    $ java -jar corpusmaker-standalone.jar count-incoming \
+    $ java -Xmx1g -server -jar corpusmaker-standalone.jar count-incoming \
       --pagelinks-file pagelinks_en.nt \
       --redirect-file redirects_en.nt \
       --output-folder incoming-counts-out/
@@ -91,7 +91,7 @@ or PageRank style iterative algoritm.
 
 Build a fulltext (Lucene-based) index of the abstracts of DBpedia resources:
 
-    $ java -jar corpusmaker-standalone.jar build-index \
+    $ java -Xmx1g -server -jar corpusmaker-standalone.jar build-index \
       --input-folder ~/data/dbpedia \
       --index-dir  ~/lucene/dbpedia-index
 
