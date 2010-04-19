@@ -3,6 +3,13 @@
 Clojure utilities to build training corpora for machine learning / NLP out of
 public Wikipedia and DBpedia dumps.
 
+
+## Project status
+
+This project is alpha / experimental code. Features are implemented when needed.
+Expects bugs and not implemented exceptions.
+
+
 ## Building from source
 
 Get the latest version of leiningen to build from the sources:
@@ -45,6 +52,10 @@ The DBPedia links and entities types datasets are available here:
 
   [longabstract_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/longabstract_en.nt.bz2)
 
+  [pagelinks_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/pagelinks_.nt.bz2)
+
+  [redirect_en.nt.bz2](http://downloads.dbpedia.org/3.4/en/redirect_en.nt.bz2)
+
 All of those datasets are also available from the Amazon cloud as public EBS
 volumes:
 
@@ -57,13 +68,24 @@ directly from the EBS volume.
 
 ## Usage
 
+### Evaluate popularity of entities by counting incoming links
+
+    $ java -jar corpusmaker-standalone.jar count-incoming \
+      --pagelinks-file pagelinks_en.nt \
+      --redirect-file redirects_en.nt \
+      --output-folder incoming-counts-out/
+
+Next step: flow the popularity through the links graph using TunkRank
+or PageRank style iterative algoritm.
+
+
 ### Build a lucene index of DBpedia resources
 
 Build a fulltext (Lucene-based) index of the abstracts of DBpedia resources:
 
     $ java -jar corpusmaker-standalone.jar build-index \
-     --input-folder ~/data/dbpedia \
-     --index-dir  ~/lucene/dbpedia-index
+      --input-folder ~/data/dbpedia \
+      --index-dir  ~/lucene/dbpedia-index
 
 ### Building a NER training / evaluation corpus
 
