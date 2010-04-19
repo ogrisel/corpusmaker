@@ -26,11 +26,19 @@ Then, at the root of the corpusmaker source tree:
 
     $ lein uberjar # build a standalone jar with all depedencies
 
+Note: when executing the resulting standalone jar you might get a security
+exceptions with java complaining that the signed jar is invalid:
+
+    java.lang.SecurityException: Invalid signature file digest for Manifest main attributes
+
+This can be fixed by removing the DUMMY.SF file that is mistakenly included:
+
+    % zip corpusmaker-standalone.jar -d META-INF/DUMMY.SF
 
 Hackers can also use the following leiningen commands for development /
 deployment purpose:
 
-    $ lein test [TESTS] # run the tests in the TESTS namespaces, or all tests
+    $ JAVA_OPTS="-Xmx256m" lein test [TESTS] # run the tests in the TESTS namespaces, or all tests
 
     $ lein repl # launch a REPL with the project classpath configured
 
