@@ -57,7 +57,7 @@
 (deftest count-incoming-test
   (with-log-level :warn
     (with-tmp-files [sink (temp-path "corpusmaker-test-sink")]
-      (count-incoming *link-graph* *redirect-graph* sink)
+      (count-incoming *link-graph* *redirect-graph* sink true)
       (let [results (map read-string (ds/read-lines (ju/file sink "part-00000")))]
         (is (= 4 (.size results)))
         (let [[resource count] (nth results 0)]

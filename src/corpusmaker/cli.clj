@@ -14,7 +14,7 @@
      remaining]
     (try
       ;; TODO: find a way to report progress?
-      (time (count-incoming pagelinks-file output-folder)) 0
+      (time (count-incoming pagelinks-file redirect-file output-folder)) 0
       (catch java.io.FileNotFoundException fnfe
         (println "ERROR:" (.getMessage fnfe)) 2))))
 
