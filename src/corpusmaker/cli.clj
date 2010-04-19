@@ -9,6 +9,7 @@
     args
     "Compute the incoming links count for dbpedia resources"
     [[pagelinks-file "The input file in N-TRIPLE format"]
+     [redirect-file "The redirect file in N-TRIPLE format"]
      [output-folder "The output folder" "."] ;; TODO handle HDFS URLs
      remaining]
     (try

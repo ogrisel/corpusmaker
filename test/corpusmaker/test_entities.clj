@@ -11,6 +11,7 @@
 (def *long-abstract* "test/dbpedia_3.4_longabstract_en.nt")
 (def *instance-type* "test/dbpedia_3.4_instancetype_en.nt")
 (def *link-graph* "test/fake_dbpedia_link_graph.nt")
+(def *redirect-graph* "test/fake_dbpedia_redirect_graph.nt")
 
 (deftest extract-property-test
   (let [triples (ds/read-lines (ju/file *long-abstract*))
@@ -53,21 +54,20 @@
           (is (= "\"C\" Is for Corpse is the third novel" (.substring value 0 36)))
           (is (= "http://dbpedia.org/ontology/Work" type)))))))
 
-
 (deftest count-incoming-test
   (with-log-level :warn
     (with-tmp-files [sink (temp-path "corpusmaker-test-sink")]
-      (count-incoming *link-graph* sink)
+      (count-incoming *link-graph* *redirect-graph* sink)
       (let [results (map read-string (ds/read-lines (ju/file sink "part-00000")))]
         (is (= 4 (.size results)))
         (let [[resource count] (nth results 0)]
-          (is (= "http://dbpedia.org/resource/d" resource))
+          (is (= "http://dbpedia.org/resource/rd" resource))
           (is (= 3 count)))
         (let [[resource count] (nth results 1)]
-          (is (= "http://dbpedia.org/resource/b" resource))
+          (is (= "http://dbpedia.org/resource/rb" resource))
           (is (= 2 count)))
         (let [[resource count] (nth results 2)]
-          (is (= "http://dbpedia.org/resource/a" resource))
+          (is (= "http://dbpedia.org/resource/ra" resource))
           (is (= 2 count)))
         (let [[resource count] (nth results 3)]
           (is (= "http://dbpedia.org/resource/c" resource))
