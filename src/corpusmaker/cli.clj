@@ -11,14 +11,17 @@
     "Compute the incoming links count for dbpedia resources"
     [[link-file "The link file in N-TRIPLE format"]
      [redirect-file "The redirect file in N-TRIPLE format"]
-     [output-folder "The output folder" "."] ;; TODO handle HDFS URLs
+     [output-folder "The output folder (should not exist)" "counts-output"]
+     ;; TODO handle HDFS URLs
      remaining]
     (try
       (if (or (= link-file nil) (= redirect-file nil))
         (do (println "ERROR: missing link file or redirect file") 3)
         ;; TODO: find a way to report progress?
         ;; TODO: handle the stdin case
-        (do (time (count-incoming link-file redirect-file output-folder)) 0))
+        (if (.exists (java.io.File. output-folder))
+          (do (println "ERROR: output folder already exists") 3)
+          (do (time (count-incoming link-file redirect-file output-folder)) 0)))
       (catch java.io.FileNotFoundException fnfe
         (println "ERROR:" (.getMessage fnfe)) 2))))
 
