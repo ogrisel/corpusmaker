@@ -16,10 +16,16 @@ import java.io.IOException;
  */
 public class WikipediaPageScheme extends Scheme {
 
-    public static final Fields SOURCE_FIELDS = new Fields("title", "markup");
+	private static final long serialVersionUID = 1L;
+
+	public static final Fields SOURCE_FIELDS = new Fields("title", "markup");
 
     public WikipediaPageScheme() {
         super(SOURCE_FIELDS, Fields.UNKNOWN);
+    }
+
+    public WikipediaPageScheme(Fields sourceFields) {
+        super(sourceFields, Fields.UNKNOWN);
     }
 
     @Override

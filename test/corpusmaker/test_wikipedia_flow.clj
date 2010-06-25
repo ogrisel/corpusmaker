@@ -57,14 +57,21 @@
     (with-tmp-files [sink-path (temp-path "corpusmaker-test-sink")]
       (let [flow
             (c/flow
-              {"wikipedia" (w/wikipedia-tap *sample-dumpfile*)}
+              {"wikipedia" (w/wikipedia-tap
+                             *sample-dumpfile*
+                             ["title", "markup"])}
               (c/lfs-tap (c/text-line ["title", "unigram"]) sink-path)
               (->
                 (c/pipe "wikipedia")
                 (c/filter #'w/no-redirect? :< "markup")
-                (c/map #'w/parse-markup :< "markup" :> ["title" "text"])
+                (c/map #'w/parse-markup
+                  :< "markup"
+                  :fn> ["text", "links", "categories"]
+                  :> ["title" "text"])
                 (c/mapcat #'w/tokenize-text
-                  :< "text" :fn> "unigram" :> ["title" "unigram"])))]
+                  :< "text"
+                  :fn> "unigram"
+                  :> ["title" "unigram"])))]
         (c/exec flow)
         (let [output-lines (ds/read-lines (ju/file sink-path "part-00000"))]
           (is (= 13087 (.size output-lines)))

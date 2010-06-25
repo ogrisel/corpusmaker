@@ -14,7 +14,9 @@
     clojure.contrib.duck-streams
     clojure.contrib.str-utils)
   (:require
-    (cascading.clojure [api :as c]))
+    (cascading.clojure
+      [api :as c]
+      [parse :as cp]))
   (:import
     java.util.regex.Pattern
     javax.xml.stream.XMLInputFactory
@@ -115,7 +117,6 @@
 
 (defn parse-markup
   "Remove wikimarkup while collecting links to entities and categories"
-  {:fn> ["text", "links", "categories"]}
   [page-markup]
   (let [#^WikiModel model (LinkAnnotationTextConverter/newWikiModel)
         converter (LinkAnnotationTextConverter.)
@@ -173,6 +174,10 @@
 
 (defn wikipedia-tap
   "Build a Cascading source tap from a wikipedia XML dump"
-  [input-path-or-file]
-  (c/hfs-tap (WikipediaPageScheme.) input-path-or-file))
+  ([input-path-or-file]
+    (c/hfs-tap (WikipediaPageScheme.) input-path-or-file))
+  ([input-path-or-file field-names]
+   (c/hfs-tap
+     (WikipediaPageScheme. (cp/fields field-names))
+     input-path-or-file)))
 
