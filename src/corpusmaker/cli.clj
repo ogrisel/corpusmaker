@@ -2,19 +2,23 @@
   (:gen-class)
   (:use corpusmaker.wikipedia
     corpusmaker.entities
+    clojure.contrib.str-utils
     clojure.contrib.command-line))
 
 (defn handle-count-incoming [args]
   (with-command-line
     args
     "Compute the incoming links count for dbpedia resources"
-    [[pagelinks-file "The input file in N-TRIPLE format"]
+    [[link-file "The link file in N-TRIPLE format"]
      [redirect-file "The redirect file in N-TRIPLE format"]
      [output-folder "The output folder" "."] ;; TODO handle HDFS URLs
      remaining]
     (try
-      ;; TODO: find a way to report progress?
-      (time (count-incoming pagelinks-file redirect-file output-folder)) 0
+      (if (or (= link-file nil) (= redirect-file nil))
+        (do (println "ERROR: missing link file or redirect file") 3)
+        ;; TODO: find a way to report progress?
+        ;; TODO: handle the stdin case
+        (do (time (count-incoming link-file redirect-file output-folder)) 0))
       (catch java.io.FileNotFoundException fnfe
         (println "ERROR:" (.getMessage fnfe)) 2))))
 
@@ -23,13 +27,16 @@
     args
     "Chunk a Wikipedia pages XML dump into smaller files"
     [[input-file "The input file"]
-     [sdtin? "Stream the complete uncompressed dump to STDIN" false]
+     [stdin? "Stream the complete uncompressed dump to STDIN (not implemented)" false]
      [output-folder "The output folder" "."] ;; TODO handle HDFS URLs
      [chunk-size "The maximum size of a chunk in megabytes" 128]
      remaining]
     (try
-      ;; TODO: find a way to report progress?
-      (time (chunk-dump input-file output-folder chunk-size)) 0
+      (if (and (= input-file nil) (not stdin?))
+        (do (println "ERROR: missing input file or stdin stream") 3)
+        ;; TODO: find a way to report progress?
+        ;; TODO: handle the stdin case
+        (do (time (chunk-dump input-file output-folder chunk-size)) 0))
       (catch java.io.FileNotFoundException fnfe
         (println "ERROR:" (.getMessage fnfe)) 2))))
 
@@ -63,6 +70,7 @@
         (if handler
           (System/exit (handler (rest args)))
           (println "ERROR:" command "is not a valid command")))))
-  (println "try one of the following commands: " (keys *commands*))
+  (println "try one of the following commands: "
+    (str-join ", " (keys *commands*)))
   (System/exit 1))
 
