@@ -20,4 +20,9 @@
                  [cascading-clojure "1.0.0-SNAPSHOT"]]
   :dev-dependencies [[lein-clojars "0.5.0-SNAPSHOT"]
                      [lein-javac "0.0.2-SNAPSHOT"]]
-  :main corpusmaker.cli)
+  :main corpusmaker.cli
+  :source-path "src"
+  :library-path "lib"
+  :test-path "test"
+  :jar-dir "target/" ; where to place the project's jar file
+  :jvm-opts "-Xmx1g")
