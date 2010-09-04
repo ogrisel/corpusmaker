@@ -118,7 +118,7 @@
   (if (nil? redirect) orig redirect))
 
 (defn count-incoming
-  "Count the number of incoming links to a resource for simple popularity ranking"
+  "Count the number of incoming links to a resource for popularity ranking"
   ([link-file redirect-file out-folder]
     (count-incoming link-file redirect-file out-folder false))
   ([link-file redirect-file out-folder to-clj]
