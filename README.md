@@ -6,7 +6,9 @@ public Wikipedia and DBpedia dumps.
 
 ## Project status
 
-This project is alpha / experimental code. Features are implemented when needed.
+*Stalled*: this project is no longer active for licensing issues (cascading being a GPL dependency it will never be possible to contribute it to the ASF) and is being replaced by <https://github.com/ogrisel/pignlproc/> instead.
+
+This project is experimental code. Features are implemented when needed.
 Expects bugs and not implemented exceptions.
 
 
